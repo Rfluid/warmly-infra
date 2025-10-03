@@ -48,9 +48,8 @@ export class InputComponent implements ControlValueAccessor {
   @Input() required: boolean = false;
   @Input() error?: string;
   @Input() hint?: string;
+  @Input() value: string = '';
   @Output() valueChange = new EventEmitter<string>();
-
-  value: string = '';
   onChange: any = () => {};
   onTouched: any = () => {};
 

@@ -1,205 +1,321 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CardComponent } from '../../shared/components/card/card.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
-import { InputComponent } from '../../shared/components/input/input.component';
 import { WarmthBadgeComponent } from '../../shared/components/warmth-badge/warmth-badge.component';
-
-interface Contact {
-  id: number;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  time: string;
-  warmth: number;
-  unread: boolean;
-}
-
-interface ChatMessage {
-  id: number;
-  sender: 'lead' | 'ai';
-  content: string;
-  time: string;
-  avatar?: string;
-}
+import { ConversationsService } from '../../core/services/conversations.service';
+import { Conversation, Message } from '../../core/models/message.model';
 
 @Component({
   selector: 'app-conversations',
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonComponent, WarmthBadgeComponent],
   template: `
-    <div class="p-8 h-screen flex gap-6">
+    <div class="flex flex-col lg:flex-row h-[calc(100vh-2rem)] md:h-screen gap-4 p-4 md:p-6">
       <!-- Conversations List -->
-      <div class="w-80 flex flex-col">
-        <div class="flex items-center justify-between mb-6">
-          <h1 class="text-2xl font-semibold text-warmly-text-primary">Conversations</h1>
-          <span class="px-3 py-1 bg-warmly-primary/10 text-warmly-primary text-sm font-medium rounded-full">
-            {{ unreadCount() }} new
-          </span>
+      <div class="w-full lg:w-80 flex flex-col bg-white rounded-2xl shadow-warmly-lg overflow-hidden">
+        <div class="p-4 border-b border-warmly-border">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-warmly-text-primary">Conversations</h2>
+            <span *ngIf="unreadCount() > 0" class="px-2 py-1 bg-warmly-primary text-white text-xs rounded-full">
+              {{ unreadCount() }}
+            </span>
+          </div>
+          
+          <div class="relative">
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              (input)="filterConversations()"
+              placeholder="Search conversations..."
+              class="w-full px-4 py-2 pl-10 bg-warmly-bg border border-warmly-border rounded-warmly-lg focus:outline-none focus:ring-2 focus:ring-warmly-primary/50"
+            />
+            <span class="absolute left-3 top-2.5 text-warmly-text-muted">🔍</span>
+          </div>
         </div>
 
-        <div class="relative mb-4">
-          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-warmly-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-          <input 
-            type="text"
-            placeholder="Search conversations..."
-            class="w-full pl-10 pr-4 py-2 bg-white/50 border border-warmly-border rounded-warmly-md focus:outline-none focus:ring-2 focus:ring-warmly-primary/50"
-            [(ngModel)]="searchQuery"
-          />
-        </div>
+        <!-- Conversations List -->
+        <div class="flex-1 overflow-y-auto scrollbar-warmly">
+          <div *ngIf="filteredConversations().length === 0" class="p-6 text-center">
+            <p class="text-warmly-text-muted">No conversations yet</p>
+            <p class="text-xs text-warmly-text-muted mt-2">Start chatting with your leads</p>
+          </div>
 
-        <div class="flex-1 overflow-y-auto space-y-2 scrollbar-warmly">
           <button
-            *ngFor="let contact of filteredContacts()"
-            (click)="selectContact(contact)"
-            [class]="selectedContact().id === contact.id ? 'bg-warmly-primary/10 border-warmly-primary' : 'bg-white hover:bg-warmly-bg'"
-            class="w-full p-4 rounded-warmly-lg border border-warmly-border transition-all text-left"
+            *ngFor="let conv of filteredConversations()"
+            (click)="selectConversation(conv)"
+            [class]="selectedConv()?.leadId === conv.leadId 
+              ? 'bg-warmly-primary/10 border-l-4 border-warmly-primary' 
+              : 'hover:bg-warmly-bg border-l-4 border-transparent'"
+            class="w-full p-4 border-b border-warmly-border transition-all text-left"
           >
             <div class="flex items-start gap-3">
-              <img [src]="contact.avatar" [alt]="contact.name" class="w-12 h-12 rounded-full object-cover"/>
+              <div class="w-12 h-12 rounded-full bg-gradient-warmly flex items-center justify-center text-white font-semibold flex-shrink-0">
+                {{ getInitials(conv.lead.name) }}
+              </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between mb-1">
-                  <h3 class="font-semibold text-warmly-text-primary truncate">{{ contact.name }}</h3>
-                  <span class="text-xs text-warmly-text-muted">{{ contact.time }}</span>
+                  <h3 class="font-semibold text-warmly-text-primary truncate">
+                    {{ conv.lead.name }}
+                  </h3>
+                  <span *ngIf="conv.lastMessage" class="text-xs text-warmly-text-muted whitespace-nowrap ml-2">
+                    {{ formatTime(conv.lastMessage.timestamp!) }}
+                  </span>
                 </div>
-                <p class="text-sm text-warmly-text-muted truncate mb-2">{{ contact.lastMessage }}</p>
-                <app-warmth-badge [score]="contact.warmth" />
+                <p class="text-sm text-warmly-text-secondary truncate">
+                  {{ conv.lastMessage?.text || 'No messages yet' }}
+                </p>
+                <div class="flex items-center gap-2 mt-2">
+                  <app-warmth-badge [score]="conv.lead.warmth" />
+                  <span *ngIf="conv.unreadCount > 0" 
+                    class="px-2 py-0.5 bg-warmly-primary text-white text-xs rounded-full">
+                    {{ conv.unreadCount }}
+                  </span>
+                </div>
               </div>
-              <div *ngIf="contact.unread" class="w-2 h-2 bg-warmly-primary rounded-full"></div>
             </div>
           </button>
         </div>
       </div>
 
-      <!-- Chat Panel -->
-      <div class="flex-1 flex flex-col glass rounded-warmly-xl shadow-warmly-glass">
-        <div *ngIf="selectedContact()" class="flex items-center justify-between p-4 border-b border-white/20">
-          <div class="flex items-center gap-3">
-            <img [src]="selectedContact().avatar" [alt]="selectedContact().name" class="w-10 h-10 rounded-full object-cover"/>
-            <div>
-              <h2 class="font-semibold text-warmly-text-primary">{{ selectedContact().name }}</h2>
-              <app-warmth-badge [score]="selectedContact().warmth" />
+      <!-- Chat Area -->
+      <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-warmly-lg overflow-hidden">
+        <!-- No Conversation Selected -->
+        <div *ngIf="!selectedConv()" class="flex-1 flex items-center justify-center">
+          <div class="text-center">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-warmly-bg flex items-center justify-center">
+              <span class="text-4xl">💬</span>
             </div>
-          </div>
-          <div class="flex gap-2">
-            <app-button variant="secondary" size="sm">Create Deal</app-button>
-            <app-button variant="secondary" size="sm">Open Lead</app-button>
+            <h3 class="text-xl font-semibold text-warmly-text-primary mb-2">No conversation selected</h3>
+            <p class="text-warmly-text-secondary">Select a conversation to start chatting</p>
           </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-warmly">
-          <div *ngFor="let message of messages" [class]="message.sender === 'lead' ? 'flex justify-start' : 'flex justify-end'">
-            <div [class]="message.sender === 'lead' ? 'bg-white' : 'gradient-warmly text-white'" 
-                 class="max-w-md px-4 py-3 rounded-2xl shadow-sm">
-              <p class="text-sm">{{ message.content }}</p>
-              <span [class]="message.sender === 'lead' ? 'text-warmly-text-muted' : 'text-white/70'" 
-                    class="text-xs mt-1 block">{{ message.time }}</span>
+        <!-- Conversation Selected -->
+        <div *ngIf="selectedConv()" class="flex-1 flex flex-col">
+          <!-- Chat Header -->
+          <div class="p-4 border-b border-warmly-border flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-gradient-warmly flex items-center justify-center text-white font-semibold">
+                {{ getInitials(selectedConv()!.lead.name) }}
+              </div>
+              <div>
+                <h2 class="font-semibold text-warmly-text-primary">
+                  {{ selectedConv()!.lead.name }}
+                </h2>
+                <p class="text-sm text-warmly-text-muted">
+                  {{ selectedConv()!.lead.phone }}
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <app-warmth-badge [score]="selectedConv()!.lead.warmth" />
             </div>
           </div>
-        </div>
 
-        <div class="p-4 border-t border-white/20">
-          <div class="flex gap-2">
-            <input 
-              type="text"
-              placeholder="Type your message..."
-              class="flex-1 px-4 py-3 bg-white/50 border border-warmly-border rounded-warmly-lg focus:outline-none focus:ring-2 focus:ring-warmly-primary/50"
-              [(ngModel)]="messageText"
-              (keyup.enter)="sendMessage()"
-            />
-            <app-button variant="primary" (buttonClick)="sendMessage()">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-              </svg>
-            </app-button>
+          <!-- Messages -->
+          <div #messagesContainer class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-warmly bg-warmly-bg/30">
+            <!-- No Messages -->
+            <div *ngIf="messages().length === 0" class="text-center py-8">
+              <p class="text-warmly-text-muted">No messages yet</p>
+            </div>
+
+            <!-- Message Bubbles -->
+            <div *ngFor="let message of messages()" [class]="message.sender === 'user' ? 'flex justify-end' : 'flex justify-start'">
+              <div [class]="message.sender === 'user' 
+                ? 'bg-warmly-primary text-white max-w-[70%] rounded-2xl rounded-br-md px-4 py-3' 
+                : message.sender === 'ai'
+                ? 'bg-blue-100 text-blue-900 max-w-[70%] rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-blue-200'
+                : 'bg-white max-w-[70%] rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-warmly-border'">
+                <p class="text-sm whitespace-pre-wrap break-words">{{ message.text }}</p>
+                <p [class]="message.sender === 'user' ? 'text-white/70' : 'text-warmly-text-muted'" 
+                   class="text-xs mt-1">
+                  {{ formatTime(message.timestamp!) }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div *ngIf="isTyping()" class="flex justify-start">
+              <div class="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-warmly-border">
+                <div class="flex gap-1">
+                  <span class="w-2 h-2 bg-warmly-text-muted rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                  <span class="w-2 h-2 bg-warmly-text-muted rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                  <span class="w-2 h-2 bg-warmly-text-muted rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message Input -->
+          <div class="p-4 border-t border-warmly-border">
+            <div class="flex gap-2">
+              <input
+                type="text"
+                [(ngModel)]="messageText"
+                (keyup.enter)="sendMessage()"
+                placeholder="Type your message..."
+                [disabled]="isSending()"
+                class="flex-1 px-4 py-3 bg-warmly-bg border border-warmly-border rounded-warmly-lg focus:outline-none focus:ring-2 focus:ring-warmly-primary/50 disabled:opacity-50"
+              />
+              <app-button
+                variant="primary"
+                [disabled]="!messageText.trim() || isSending()"
+                (buttonClick)="sendMessage()"
+              >
+                {{ isSending() ? '...' : '📤' }}
+              </app-button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   `,
-  styles: []
+  styles: [`
+    .scrollbar-warmly::-webkit-scrollbar {
+      width: 6px;
+    }
+    .scrollbar-warmly::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    .scrollbar-warmly::-webkit-scrollbar-thumb {
+      background: #FF7A59;
+      border-radius: 10px;
+    }
+  `]
 })
-export class ConversationsComponent {
+export class ConversationsComponent implements OnInit, AfterViewChecked {
+  private conversationsService = inject(ConversationsService);
+
+  @ViewChild('messagesContainer') private messagesContainer?: ElementRef;
+
+  conversations = signal<Conversation[]>([]);
+  filteredConversations = signal<Conversation[]>([]);
+  selectedConv = signal<Conversation | null>(null);
+  messages = signal<Message[]>([]);
+  
   searchQuery = '';
   messageText = '';
   
-  contacts: Contact[] = [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      lastMessage: "Thanks for the demo! I'll discuss with my team.",
-      time: "2m ago",
-      warmth: 75,
-      unread: false
-    },
-    {
-      id: 2,
-      name: "Marcus Rodriguez",
-      avatar: "https://i.pravatar.cc/150?img=2",
-      lastMessage: "What's the pricing for enterprise?",
-      time: "15m ago",
-      warmth: 45,
-      unread: true
-    },
-    {
-      id: 3,
-      name: "Lisa Thompson",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      lastMessage: "Can we schedule a call this week?",
-      time: "1h ago",
-      warmth: 85,
-      unread: true
-    }
-  ];
+  isSending = signal(false);
+  isTyping = signal(false);
+  unreadCount = signal(0);
 
-  messages: ChatMessage[] = [
-    {
-      id: 1,
-      sender: "lead",
-      content: "Hi! I saw your demo and I'm interested in learning more.",
-      time: "10:30 AM",
-      avatar: "https://i.pravatar.cc/150?img=1"
-    },
-    {
-      id: 2,
-      sender: "ai",
-      content: "Thanks for reaching out! I'd love to help you explore our solution. What challenges are you facing?",
-      time: "10:32 AM"
-    }
-  ];
+  private shouldScrollToBottom = false;
 
-  selectedContact = signal<Contact>(this.contacts[0]);
-
-  filteredContacts() {
-    if (!this.searchQuery) return this.contacts;
-    return this.contacts.filter(c => 
-      c.name.toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
+  ngOnInit() {
+    this.loadConversations();
   }
 
-  unreadCount() {
-    return this.contacts.filter(c => c.unread).length;
+  ngAfterViewChecked() {
+    if (this.shouldScrollToBottom) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false;
+    }
   }
 
-  selectContact(contact: Contact) {
-    this.selectedContact.set(contact);
+  loadConversations() {
+    this.conversationsService.getConversations().subscribe({
+      next: (convs) => {
+        this.conversations.set(convs);
+        this.filteredConversations.set(convs);
+        this.calculateUnreadCount();
+      },
+      error: (error) => {
+        console.error('Error loading conversations:', error);
+      }
+    });
+  }
+
+  selectConversation(conv: Conversation) {
+    this.selectedConv.set(conv);
+    this.messages.set(conv.messages || []);
+    this.shouldScrollToBottom = true;
+    
+    // Mark as read
+    this.conversationsService.markAsRead(conv.leadId).subscribe();
   }
 
   sendMessage() {
-    if (!this.messageText.trim()) return;
+    if (!this.messageText.trim() || !this.selectedConv()) return;
     
-    this.messages.push({
-      id: this.messages.length + 1,
-      sender: 'ai',
-      content: this.messageText,
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-    });
+    this.isSending.set(true);
+    const leadId = this.selectedConv()!.leadId;
+    const text = this.messageText;
     
     this.messageText = '';
+    
+    this.conversationsService.sendMessage(leadId, text).subscribe({
+      next: (message) => {
+        this.messages.update(msgs => [...msgs, message]);
+        this.shouldScrollToBottom = true;
+        this.isSending.set(false);
+        
+        // Reload conversations to update list
+        this.loadConversations();
+      },
+      error: (error) => {
+        console.error('Error sending message:', error);
+        this.isSending.set(false);
+      }
+    });
+  }
+
+  filterConversations() {
+    const query = this.searchQuery.toLowerCase();
+    if (!query) {
+      this.filteredConversations.set(this.conversations());
+      return;
+    }
+    
+    const filtered = this.conversations().filter(c => 
+      c.lead.name.toLowerCase().includes(query) ||
+      c.lead.phone.includes(query) ||
+      (c.lastMessage?.text && c.lastMessage.text.toLowerCase().includes(query))
+    );
+    this.filteredConversations.set(filtered);
+  }
+
+  calculateUnreadCount() {
+    const count = this.conversations().reduce((sum, c) => sum + c.unreadCount, 0);
+    this.unreadCount.set(count);
+  }
+
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  }
+
+  formatTime(timestamp: Date): string {
+    if (!timestamp) return '';
+    
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString();
+  }
+
+  scrollToBottom() {
+    if (this.messagesContainer) {
+      const element = this.messagesContainer.nativeElement;
+      element.scrollTop = element.scrollHeight;
+    }
   }
 }
-

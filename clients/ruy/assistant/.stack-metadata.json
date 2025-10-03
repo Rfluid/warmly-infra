@@ -1,0 +1,21 @@
+{
+  "id": "ruy_assistant",
+  "client_id": "ruy",
+  "name": "assistant",
+  "template_id": "warmly",
+  "status": "running",
+  "environment": {
+    "CLIENT_ID": "ruy",
+    "EMBEDDING_MODEL_NAME": "text-embedding-3-small",
+    "EMBEDDING_PROVIDER": "openai",
+    "LLM_MODEL_NAME": "gpt-4o-mini",
+    "LLM_PROVIDER": "openai",
+    "STACK_NAME": "assistant",
+    "WAHA_API_KEY": "sha512:fe09097e63d3f8c204042c65eb6490b9076bbadef3b06165d003880c65dd467225f89ce52e20eb325b796ff98ea494c8ea30a66bc5f7e1feded385623e83e27d",
+    "WAHA_API_KEY_PLAIN": "123456",
+    "WAHA_DASHBOARD_PASSWORD": "123456"
+  },
+  "created_at": "2025-10-03T14:34:59.724909453-03:00",
+  "updated_at": "2025-10-03T14:34:59.72490966-03:00",
+  "path": "../clients/ruy/assistant"
+}

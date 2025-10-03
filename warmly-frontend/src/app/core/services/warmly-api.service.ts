@@ -44,7 +44,12 @@ export class WarmlyApiService {
   private baseUrl = environment.apiUrl;
 
   // Messages
-  sendMessage(request: InputRequest): Observable<any> {
+  sendMessage(data: string, threadId?: string): Observable<any> {
+    const request: InputRequest = {
+      data,
+      thread_id: threadId || '',
+      chat_interface: 'web'
+    };
     return this.http.post(`${this.baseUrl}/api/messages/user`, request);
   }
 
@@ -53,6 +58,10 @@ export class WarmlyApiService {
   }
 
   // Threads
+  getThreads(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/api/threads`);
+  }
+
   getThreadState(threadId: string): Observable<ThreadState> {
     return this.http.get<ThreadState>(`${this.baseUrl}/api/threads/${threadId}/state`);
   }

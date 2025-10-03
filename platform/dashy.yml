@@ -7,7 +7,6 @@ networks:
 services:
     dashy:
         image: lissy93/dashy:latest
-        container_name: dashy
         restart: unless-stopped
         networks: [edge]
         volumes:

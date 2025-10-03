@@ -1,251 +1,361 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CardComponent } from '../../shared/components/card/card.component';
+import { Router } from '@angular/router';
 import { ButtonComponent } from '../../shared/components/button/button.component';
-import { InputComponent } from '../../shared/components/input/input.component';
-import { WarmlyApiService } from '../../core/services/warmly-api.service';
+import { CardComponent } from '../../shared/components/card/card.component';
+import { PersonaService } from '../../core/services/persona.service';
+import { Persona } from '../../core/models/persona.model';
+import { ToastService } from '../../core/services/toast.service';
+import { DeployedAIsService } from '../../core/services/deployed-ais.service';
+import { DeployedStack } from '../../core/services/warmly-deployment.service';
 
 @Component({
   selector: 'app-ai-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardComponent, ButtonComponent, InputComponent],
+  imports: [CommonModule, FormsModule, ButtonComponent, CardComponent],
   template: `
-    <div class="p-8 space-y-6">
-      <div class="flex items-center justify-between">
+    <div class="p-4 md:p-8 space-y-6">
+      <!-- Header -->
+      <div class="flex justify-between items-center">
         <div>
           <h1 class="text-3xl font-bold text-warmly-text-primary">AI Manager</h1>
-          <p class="text-warmly-text-muted mt-1">Configure your AI persona and knowledge base</p>
+          <p class="text-warmly-text-secondary mt-1">Manage your AI instances and persona</p>
+        </div>
+        <div class="flex gap-2">
+          <app-button variant="primary" (buttonClick)="createWarmlyAI()"
+            >🚀 Deploy New AI</app-button
+          >
+          <app-button variant="secondary" (buttonClick)="editPersona()">Edit Persona</app-button>
         </div>
       </div>
 
-      <!-- Persona Card -->
-      <app-card variant="elevated" title="Persona Configuration">
-        <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <app-input 
-              label="Company Name" 
-              placeholder="Enter company name"
-              [(ngModel)]="personaConfig.companyName"
-            />
-            <app-input 
-              label="Persona Name" 
-              placeholder="e.g., Sales Assistant"
-              [(ngModel)]="personaConfig.personaName"
-            />
-          </div>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <app-input 
-              label="Role" 
-              placeholder="Sales Representative"
-              [(ngModel)]="personaConfig.role"
-            />
-            <app-input 
-              label="Language" 
-              placeholder="Portuguese, English"
-              [(ngModel)]="personaConfig.language"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-warmly-text-primary mb-2">Tone & Style</label>
-            <div class="flex flex-wrap gap-2">
-              <button 
-                *ngFor="let tone of toneOptions" 
-                (click)="toggleTone(tone)"
-                [class]="getToneClasses(tone)"
-                class="px-4 py-2 rounded-full text-sm font-medium transition-all"
+      <!-- Deployed AIs -->
+      <div *ngIf="deployedAIs().length > 0">
+        <h2 class="text-2xl font-bold text-warmly-text-primary mb-4">Your AI Instances</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            *ngFor="let ai of deployedAIs()"
+            class="bg-white rounded-warmly-xl shadow-warmly-lg p-6 hover:shadow-warmly-xl transition-shadow"
+          >
+            <!-- AI Card -->
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h3 class="text-xl font-bold text-warmly-text-primary">{{ ai.stackName }}</h3>
+                <p class="text-sm text-warmly-text-muted">{{ ai.clientId }}</p>
+              </div>
+              <div
+                class="w-12 h-12 rounded-full bg-gradient-warmly flex items-center justify-center text-2xl"
               >
-                {{ tone }}
-              </button>
+                🤖
+              </div>
             </div>
-          </div>
 
-          <div class="flex gap-3 pt-4">
-            <app-button variant="primary" (buttonClick)="savePersona()">
-              Save Configuration
-            </app-button>
-            <app-button variant="secondary">
-              View Compiled Prompt
-            </app-button>
-          </div>
-        </div>
-      </app-card>
+            <!-- Status -->
+            <div class="mb-4">
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm"
+                [class]="
+                  ai.status === 'ready'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'
+                "
+              >
+                {{ ai.status === 'ready' ? '✓ Active' : '⏳ ' + ai.status }}
+              </span>
+            </div>
 
-      <!-- Knowledge Base Card -->
-      <app-card variant="elevated" title="Knowledge Base">
-        <div class="space-y-4">
-          <p class="text-sm text-warmly-text-muted">
-            Upload documents to enhance the AI's knowledge about your products and services.
-          </p>
-
-          <div class="border-2 border-dashed border-warmly-border rounded-warmly-lg p-8 text-center hover:border-warmly-primary transition-colors cursor-pointer"
-               (click)="fileInput.click()"
-               (drop)="onDrop($event)"
-               (dragover)="onDragOver($event)">
-            <svg class="mx-auto h-12 w-12 text-warmly-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-            <p class="mt-2 text-sm text-warmly-text-muted">
-              Click to upload or drag and drop
-            </p>
-            <p class="text-xs text-warmly-text-muted mt-1">
-              PDF, CSV, TXT, JSON (max 10MB)
-            </p>
-          </div>
-
-          <input 
-            #fileInput
-            type="file" 
-            class="hidden" 
-            multiple
-            accept=".pdf,.csv,.txt,.json"
-            (change)="onFileSelect($event)"
-          />
-
-          <!-- Uploaded Files -->
-          <div *ngIf="uploadedFiles().length > 0" class="space-y-2">
-            <h4 class="font-medium text-warmly-text-primary">Uploaded Documents</h4>
+            <!-- Quick Actions -->
             <div class="space-y-2">
-              <div *ngFor="let file of uploadedFiles()" class="flex items-center justify-between p-3 bg-warmly-bg rounded-warmly-md">
-                <div class="flex items-center gap-3">
-                  <svg class="w-5 h-5 text-warmly-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm font-medium">{{ file.name }}</p>
-                    <p class="text-xs text-warmly-text-muted">{{ formatFileSize(file.size) }}</p>
-                  </div>
-                </div>
-                <button class="text-warmly-danger hover:text-warmly-danger/80">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
+              <app-button variant="secondary" class="w-full" (buttonClick)="openWAHADashboard(ai)">
+                📱 WAHA Dashboard
+              </app-button>
+
+              <app-button variant="ghost" class="w-full" (buttonClick)="openStreamlit(ai)">
+                💬 Test Chat
+              </app-button>
+
+              <div class="flex gap-2">
+                <app-button variant="ghost" size="sm" class="flex-1" (buttonClick)="copyAPIUrl(ai)">
+                  📋 Copy API
+                </app-button>
+                <app-button
+                  variant="ghost"
+                  size="sm"
+                  class="flex-1 text-red-600 hover:bg-red-50"
+                  (buttonClick)="deleteAI(ai)"
+                >
+                  🗑️ Delete
+                </app-button>
               </div>
             </div>
           </div>
-
-          <app-button 
-            variant="primary" 
-            [disabled]="selectedFiles().length === 0"
-            [loading]="uploading()"
-            (buttonClick)="uploadFiles()"
-          >
-            Upload Documents
-          </app-button>
         </div>
-      </app-card>
+      </div>
 
-      <!-- Tools & Policies Card -->
-      <app-card variant="elevated" title="Tools & Policies">
-        <div class="space-y-4">
-          <div *ngFor="let policy of policies" class="flex items-center justify-between p-4 bg-warmly-bg rounded-warmly-md">
+      <!-- No AIs Deployed -->
+      <div *ngIf="deployedAIs().length === 0" class="text-center py-12">
+        <div
+          class="w-20 h-20 mx-auto mb-4 rounded-full bg-warmly-bg flex items-center justify-center"
+        >
+          <span class="text-4xl">🚀</span>
+        </div>
+        <h3 class="text-xl font-semibold text-warmly-text-primary mb-2">No AI Instances Yet</h3>
+        <p class="text-warmly-text-secondary mb-4">Deploy your first Warmly AI to get started</p>
+        <app-button variant="primary" (buttonClick)="createWarmlyAI()">🚀 Deploy AI</app-button>
+      </div>
+
+      <!-- No Persona -->
+      <div *ngIf="!persona()" class="text-center py-12">
+        <div
+          class="w-20 h-20 mx-auto mb-4 rounded-full bg-warmly-bg flex items-center justify-center"
+        >
+          <span class="text-4xl">🤖</span>
+        </div>
+        <h3 class="text-xl font-semibold text-warmly-text-primary mb-2">No AI Persona Found</h3>
+        <p class="text-warmly-text-secondary mb-4">Create your AI persona to get started</p>
+        <app-button variant="primary" (buttonClick)="recreatePersona()">Create Persona</app-button>
+      </div>
+
+      <!-- Persona Overview -->
+      <div *ngIf="persona()" class="">
+        <!-- Identity Card -->
+        <app-card title="Identity & Basic Info" variant="elevated">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p class="font-medium text-warmly-text-primary">{{ policy.label }}</p>
-              <p class="text-sm text-warmly-text-muted">{{ policy.description }}</p>
+              <p class="text-sm text-warmly-text-muted">Persona Name</p>
+              <p class="font-semibold text-warmly-text-primary">{{ persona()?.name }}</p>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" [(ngModel)]="policy.enabled" class="sr-only peer">
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-warmly-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-warmly-primary"></div>
-            </label>
+            <div>
+              <p class="text-sm text-warmly-text-muted">Company</p>
+              <p class="font-semibold text-warmly-text-primary">{{ persona()?.company }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-warmly-text-muted">Industry</p>
+              <p class="font-semibold text-warmly-text-primary">{{ persona()?.industry }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-warmly-text-muted">Speaker Role</p>
+              <p class="font-semibold text-warmly-text-primary">
+                {{ persona()?.speakerRole === 'human' ? 'Human Representative' : 'Brand Voice' }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-warmly-text-muted">Languages</p>
+              <p class="font-semibold text-warmly-text-primary">
+                {{ persona()?.languages?.join(', ') }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-warmly-text-muted">Emoji Level</p>
+              <p class="font-semibold text-warmly-text-primary">{{ persona()?.emojiLevel }}</p>
+            </div>
           </div>
-        </div>
-      </app-card>
+        </app-card>
+
+        <!-- Tone & Style -->
+        <app-card title="Tone & Communication Style" variant="elevated">
+          <div class="space-y-3">
+            <div>
+              <p class="text-sm text-warmly-text-muted mb-2">Tone Attributes</p>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  *ngFor="let tone of persona()?.tone"
+                  class="px-3 py-1 bg-warmly-primary/10 text-warmly-primary rounded-full text-sm"
+                >
+                  {{ tone }}
+                </span>
+              </div>
+            </div>
+
+            <div *ngIf="persona()?.favoritePhrases && persona()!.favoritePhrases!.length > 0">
+              <p class="text-sm text-warmly-text-muted mb-2">Favorite Phrases</p>
+              <ul class="list-disc list-inside text-sm">
+                <li *ngFor="let phrase of persona()?.favoritePhrases">{{ phrase }}</li>
+              </ul>
+            </div>
+          </div>
+        </app-card>
+
+        <!-- Company Info -->
+        <app-card title="About the Company" variant="elevated">
+          <p class="text-warmly-text-secondary">{{ persona()?.summary }}</p>
+
+          <div *ngIf="persona()?.socialProof && persona()!.socialProof!.length > 0" class="mt-4">
+            <p class="text-sm font-medium text-warmly-text-muted mb-2">Social Proof</p>
+            <ul class="list-disc list-inside text-sm space-y-1">
+              <li *ngFor="let proof of persona()?.socialProof" class="text-warmly-text-secondary">
+                {{ proof }}
+              </li>
+            </ul>
+          </div>
+        </app-card>
+
+        <!-- Conversation Playbook -->
+        <app-card title="Conversation Playbook" variant="elevated">
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-warmly-text-muted mb-2">Opening Message</p>
+              <p class="p-3 bg-warmly-bg rounded-warmly-lg text-sm">
+                {{ persona()?.conversation?.opening }}
+              </p>
+            </div>
+
+            <div
+              *ngIf="
+                persona()?.conversation?.diagnostics &&
+                persona()!.conversation!.diagnostics.length > 0
+              "
+            >
+              <p class="text-sm text-warmly-text-muted mb-2">Diagnostic Questions</p>
+              <ul class="list-decimal list-inside text-sm space-y-1">
+                <li *ngFor="let q of persona()?.conversation?.diagnostics">{{ q }}</li>
+              </ul>
+            </div>
+
+            <div class="flex gap-4 text-sm">
+              <div class="flex items-center gap-2">
+                <span
+                  [class]="persona()?.conversation?.allowImage ? 'text-green-600' : 'text-red-600'"
+                >
+                  {{ persona()?.conversation?.allowImage ? '✓' : '✗' }}
+                </span>
+                <span>Images</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  [class]="persona()?.conversation?.allowAudio ? 'text-green-600' : 'text-red-600'"
+                >
+                  {{ persona()?.conversation?.allowAudio ? '✓' : '✗' }}
+                </span>
+                <span>Audio</span>
+              </div>
+            </div>
+          </div>
+        </app-card>
+
+        <!-- Automation Settings -->
+        <app-card title="Automation Settings" variant="elevated">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-warmly-text-muted">Warmth Threshold</p>
+              <p class="font-semibold text-warmly-text-primary">
+                {{ persona()?.automation?.warmthThreshold }}
+              </p>
+            </div>
+            <div *ngIf="persona()?.automation?.quietHours">
+              <p class="text-sm text-warmly-text-muted">Quiet Hours</p>
+              <p class="font-semibold text-warmly-text-primary">
+                {{ persona()?.automation?.quietHours }}
+              </p>
+            </div>
+            <div *ngIf="persona()?.automation?.rateLimit">
+              <p class="text-sm text-warmly-text-muted">Rate Limit</p>
+              <p class="font-semibold text-warmly-text-primary">
+                {{ persona()?.automation?.rateLimit }}
+              </p>
+            </div>
+          </div>
+        </app-card>
+
+        <!-- System Prompt -->
+        <app-card title="Compiled System Prompt" variant="elevated">
+          <div class="relative">
+            <pre class="p-4 bg-warmly-bg rounded-warmly-lg text-sm overflow-x-auto">{{
+              persona()?.compiled?.systemPrompt || 'Not generated yet'
+            }}</pre>
+            <app-button
+              variant="ghost"
+              size="sm"
+              (buttonClick)="copySystemPrompt()"
+              class="absolute top-2 right-2"
+            >
+              📋 Copy
+            </app-button>
+          </div>
+        </app-card>
+
+        <!-- Knowledge Base (Placeholder) -->
+        <app-card title="Knowledge Base & Files" variant="elevated">
+          <div class="text-center py-8 text-warmly-text-muted">
+            <p class="mb-4">📄 Upload documents, PDFs, and price lists</p>
+            <app-button variant="secondary">Upload Files</app-button>
+          </div>
+        </app-card>
+      </div>
     </div>
   `,
-  styles: []
+  styles: [],
 })
-export class AIManagerComponent {
-  private apiService = inject(WarmlyApiService);
+export class AIManagerComponent implements OnInit {
+  private personaService = inject(PersonaService);
+  private router = inject(Router);
+  private toastService = inject(ToastService);
+  private deployedAIsService = inject(DeployedAIsService);
 
-  personaConfig = {
-    companyName: '',
-    personaName: '',
-    role: '',
-    language: 'Portuguese, English'
-  };
+  persona = signal<Persona | null>(null);
+  deployedAIs = this.deployedAIsService.deployedAIs;
 
-  toneOptions = ['Friendly', 'Professional', 'Consultative', 'Technical', 'Premium'];
-  selectedTones = signal<string[]>([]);
-  
-  selectedFiles = signal<File[]>([]);
-  uploadedFiles = signal<File[]>([]);
-  uploading = signal(false);
-
-  policies = [
-    { label: 'Ask for State Before Regional Pricing', description: 'Require location before providing regional prices', enabled: true },
-    { label: 'No Total Calculations', description: 'Avoid calculating total prices in conversations', enabled: false },
-    { label: 'No External Links', description: 'Prevent sharing external URLs', enabled: true },
-    { label: 'Require Approval for Discounts', description: 'Ask human approval before offering discounts', enabled: true }
-  ];
-
-  toggleTone(tone: string): void {
-    const tones = this.selectedTones();
-    const index = tones.indexOf(tone);
-    if (index >= 0) {
-      this.selectedTones.set(tones.filter(t => t !== tone));
-    } else {
-      this.selectedTones.set([...tones, tone]);
-    }
+  ngOnInit() {
+    this.loadPersona();
   }
 
-  getToneClasses(tone: string): string {
-    const isSelected = this.selectedTones().includes(tone);
-    return isSelected 
-      ? 'bg-warmly-primary text-white'
-      : 'bg-white border border-warmly-border text-warmly-text-primary hover:border-warmly-primary';
-  }
-
-  onFileSelect(event: any): void {
-    const files = Array.from(event.target.files) as File[];
-    this.selectedFiles.set(files);
-  }
-
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (event.dataTransfer?.files) {
-      const files = Array.from(event.dataTransfer.files);
-      this.selectedFiles.set(files);
-    }
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  uploadFiles(): void {
-    if (this.selectedFiles().length === 0) return;
-    
-    this.uploading.set(true);
-    this.apiService.uploadDocuments(this.selectedFiles()).subscribe({
-      next: () => {
-        this.uploadedFiles.set([...this.uploadedFiles(), ...this.selectedFiles()]);
-        this.selectedFiles.set([]);
-        this.uploading.set(false);
+  loadPersona() {
+    this.personaService.getPersona().subscribe({
+      next: (persona) => {
+        this.persona.set(persona);
       },
-      error: (err) => {
-        console.error('Error uploading files:', err);
-        this.uploading.set(false);
-      }
     });
   }
 
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  editPersona() {
+    // Navigate to persona wizard in edit mode
+    this.router.navigate(['/onboarding/persona']);
   }
 
-  savePersona(): void {
-    console.log('Saving persona configuration:', this.personaConfig, this.selectedTones());
-    // Implement save logic
+  recreatePersona() {
+    if (this.persona()) {
+      if (confirm('This will reset your current persona. Continue?')) {
+        this.router.navigate(['/onboarding/persona']);
+      }
+    } else {
+      this.router.navigate(['/onboarding/persona']);
+    }
+  }
+
+  copySystemPrompt() {
+    const prompt = this.persona()?.compiled?.systemPrompt || '';
+    navigator.clipboard.writeText(prompt).then(() => {
+      this.toastService.success('System prompt copied to clipboard');
+    });
+  }
+
+  createWarmlyAI() {
+    this.router.navigate(['/ai-manager/create']);
+  }
+
+  openWAHADashboard(ai: DeployedStack) {
+    window.open(ai.urls.wahaDashboard, '_blank');
+  }
+
+  openStreamlit(ai: DeployedStack) {
+    window.open(ai.urls.streamlitFrontend, '_blank');
+  }
+
+  copyAPIUrl(ai: DeployedStack) {
+    navigator.clipboard.writeText(ai.urls.apiBackend).then(() => {
+      this.toastService.success('API URL copied to clipboard');
+    });
+  }
+
+  deleteAI(ai: DeployedStack) {
+    if (
+      confirm(
+        `Are you sure you want to delete AI instance "${ai.stackName}"? This will only remove it from the list, not delete the actual stack.`,
+      )
+    ) {
+      this.deployedAIsService.removeDeployedAI(ai.clientId, ai.stackName);
+      this.toastService.success('AI instance removed from list');
+    }
   }
 }
-

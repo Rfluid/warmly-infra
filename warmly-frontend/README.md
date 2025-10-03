@@ -1,385 +1,346 @@
-# Warmly Frontend 🔥
+# Warmly Frontend
 
-> Beautiful, modern, and responsive Angular frontend for Warmly AI - Built with Angular 19, Tailwind CSS, and love ❤️
+A complete, production-ready Angular web application for managing AI-powered WhatsApp conversations, leads, and sales automation.
 
-![Warmly Design System](https://img.shields.io/badge/Design-Warmly-FF7A59?style=for-the-badge)
-![Angular](https://img.shields.io/badge/Angular-19-DD0031?style=for-the-badge&logo=angular)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript)
+## 🚀 Features
 
-## ✨ Features
+### Authentication
+- ✅ Firebase Authentication (Google & Email/Password)
+- ✅ Auth guards and interceptors
+- ✅ Automatic token management
 
-- 🎨 **Warmly Design System** - Orange-to-red gradients, glass morphism, premium shadows
-- 🚀 **Fully Responsive** - Mobile-first design that looks stunning on all devices
-- ⚡ **Blazing Fast** - Lazy-loaded routes, optimized bundles, Angular Signals
-- 🔌 **Backend Integrated** - Full integration with Warmly AI backend APIs
-- 📊 **Real-time Updates** - WebSocket support for live conversations
-- ♿ **Accessible** - WCAG 2.1 AA compliant with keyboard navigation
-- 🎭 **Smooth Animations** - Delightful transitions and micro-interactions
+### Onboarding
+- ✅ 7-Step Persona Creation Wizard
+  - Identity & Basic Info
+  - Tone & Communication Style
+  - Company Information
+  - Catalog & Pricing
+  - Conversation Playbook
+  - Automation Settings
+  - Final Review & Creation
+- ✅ Draft saving and recovery
+- ✅ AI-powered persona compilation
 
-## 🎯 Views
+### WhatsApp Integration
+- ✅ Connection Gate with QR Code
+- ✅ Non-dismissable blocking modal until connected
+- ✅ Real-time connection status
+- ✅ Mock mode for development
 
-### 1. AI Manager
-Configure your AI persona, upload knowledge base documents, and manage tools & policies.
+### Conversations
+- ✅ Real-time chat interface
+- ✅ Two-pane layout (list + chat)
+- ✅ Warmth score badges
+- ✅ Message search and filtering
+- ✅ Typing indicators
+- ✅ Unread message counts
+- ✅ Auto-scroll to bottom
 
-- Persona configuration (company, role, tone)
-- Knowledge base upload (drag & drop)
-- Tools & policies toggles
+### Leads Management
+- ✅ Smart Tags (dynamic fields)
+  - Text, Select, Multiselect, Number, Date, Boolean
+  - User-defined tag schemas
+  - Bulk tag operations
+- ✅ Advanced filtering
+  - Warmth score ranges
+  - Status filtering
+  - Tag-based filtering
+  - Search functionality
+- ✅ CRUD operations
+- ✅ CSV Import/Export
+- ✅ Bulk operations
 
-### 2. Conversations
-Two-pane chat interface for managing customer conversations.
+### Sales Funnel
+- ✅ Kanban board with drag & drop
+- ✅ 5 pipeline stages: Inactive → Active → Waiting Contact → Won/Lost
+- ✅ Real-time status updates
+- ✅ Conversion rate tracking
+- ✅ Average warmth per stage
+- ✅ Stats dashboard
 
-- Contact list with warmth badges
-- Real-time chat with lead/AI bubbles
-- Quick actions (Create Deal, Open Lead)
-- Template dropdowns
+### Broadcast & Automations
+- ✅ Bulk message sender
+  - Filter by warmth, status, tags
+  - Preview recipients
+  - Rate limiting
+  - Send history
+- ✅ Automation Rules
+  - Warmth range-based
+  - Inactivity-based
+  - Drip sequences
+  - Toggle active/inactive
+  - Execution history
 
-### 3. Leads
-Comprehensive lead management with advanced filtering.
+### AI Manager
+- ✅ View & edit persona
+- ✅ System prompt compilation
+- ✅ Persona overview cards
+- ✅ Knowledge base management
+- ✅ Copy system prompt
 
-- Sortable data table
-- Warmth-based filtering
-- Tag management
-- Bulk actions
+### Settings
+- ✅ Profile management
+- ✅ WhatsApp connection control
+- ✅ Notification preferences
+- ✅ Data export
+- ✅ Account management
 
-### 4. Funnel
-Kanban-style sales pipeline visualization.
+### UI/UX
+- ✅ Modern, warm gradient theme (coral/red-orange)
+- ✅ Fully responsive (mobile-first)
+- ✅ TailwindCSS styling
+- ✅ Beautiful animations & transitions
+- ✅ Toast notifications
+- ✅ Modal system
+- ✅ Empty states
+- ✅ Loading states
+- ✅ Error handling
 
-- Drag & drop lead cards
-- Status columns (Inactive, Active, Waiting, Won, Lost)
-- Warmth indicators
-- Deal values
+## 🛠️ Tech Stack
 
-### 5. Broadcast & Automations
-Bulk messaging and automated follow-ups.
+- **Framework**: Angular 17+ (Standalone Components)
+- **Styling**: TailwindCSS
+- **State Management**: Angular Signals
+- **Authentication**: Firebase Auth
+- **Database**: Firestore (client-side) + LocalStorage (demo mode)
+- **HTTP**: Angular HttpClient with interceptors
+- **Router**: Angular Router with guards
 
-- Message composer with variables
-- Audience targeting
-- Automation rules
-- Campaign history
-
-### 6. Settings
-Application configuration and preferences.
-
-- API connection settings
-- Notification preferences
-- Theme customization
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 20+ and npm
-- Angular CLI (will be installed if not present)
-- Warmly AI backend running on `http://localhost:8000`
-
-### Installation
+## 📦 Installation
 
 ```bash
-# Clone the repository
-cd /home/rfluid/development/Warmly/infra/warmly-frontend
-
 # Install dependencies
 npm install
 
-# Start development server
+# Set up Firebase
+# Copy your Firebase config to src/environments/environment.ts
+
+# Run development server
 npm start
-# or
-ng serve
 
-# Open browser
-open http://localhost:4200
-```
-
-### Build for Production
-
-```bash
-# Build optimized production bundle
+# Build for production
 npm run build
-# or
-ng build --configuration=production
 
-# Output will be in dist/warmly-frontend/browser/
+# Run tests
+npm test
 ```
+
+## 🔧 Configuration
+
+### Firebase Setup
+
+1. Create a Firebase project at https://firebase.google.com
+2. Enable Authentication (Google & Email/Password)
+3. Enable Firestore
+4. Copy your Firebase config to `src/environments/environment.ts`:
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8000',
+  wsUrl: 'ws://localhost:8000',
+  firebase: {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.firebasestorage.app",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  }
+};
+```
+
+### Backend API (Optional)
+
+The app works in demo mode with localStorage, but can connect to a real backend:
+
+- Set `apiUrl` in environment files
+- Backend should implement the following endpoints:
+  - `POST /api/auth/*` - Authentication
+  - `GET /api/leads` - Get leads
+  - `POST /api/messages` - Send messages
+  - `GET /api/conversations` - Get conversations
+  - `WebSocket /ws` - Real-time updates
+
+## 📱 Features Walkthrough
+
+### First-Time User Flow
+
+1. **Login/Register** → Firebase authentication
+2. **Persona Wizard** → 7-step AI configuration
+3. **WhatsApp Gate** → QR code connection (non-dismissable until connected)
+4. **Main App** → Full access to all features
+
+### Main Navigation
+
+- **Conversations**: Chat with leads
+- **Leads**: Manage contacts with smart tags
+- **Funnel**: Kanban pipeline
+- **Broadcast**: Bulk messages & automations
+- **AI Manager**: View/edit AI persona
+- **Settings**: Account & preferences
 
 ## 🎨 Design System
 
 ### Colors
 
-```css
-/* Brand Colors */
---warmly-primary: #FF7A59
---warmly-secondary: #FF4E3A
-
-/* Warmth Levels */
---warmth-cool: #60A5FA   /* 0-39 */
---warmth-warm: #F59E0B   /* 40-69 */
---warmth-hot: #EF4444    /* 70-100 */
-
-/* Surfaces */
---warmly-bg: #F8FAFC
---warmly-surface: #FFFFFF
---warmly-border: #E2E8F0
-```
-
-### Tailwind Utilities
-
-```html
-<!-- Gradients -->
-<div class="gradient-warmly">Orange to red gradient</div>
-<div class="gradient-warmly-soft">Subtle background gradient</div>
-
-<!-- Glass Morphism -->
-<div class="glass">Glass effect with blur</div>
-<div class="glass-strong">Stronger glass effect</div>
-
-<!-- Shadows -->
-<button class="shadow-warmly-card">Card shadow</button>
-<button class="shadow-warmly-fab">Floating action button shadow</button>
-
-<!-- Border Radius -->
-<div class="rounded-warmly-xl">24px radius (cards)</div>
-<div class="rounded-warmly-lg">16px radius (controls)</div>
-```
+- **Primary Gradient**: `#FF7A59` (coral) → `#FF4E3A` (red-orange)
+- **Text Primary**: `#0F172A` (slate-900)
+- **Text Secondary**: `#334155` (slate-600)
+- **Success**: `#22C55E`
+- **Warning**: `#F59E0B`
+- **Danger**: `#EF4444`
 
 ### Components
 
-All components follow the Warmly design language:
+- **Button**: Primary, Secondary, Ghost, Danger variants
+- **Card**: Default, Elevated, Glass variants
+- **Modal**: Blocking and non-blocking
+- **Badge**: Warmth-aware (cool, warm, hot)
+- **Table**: Sortable with advanced filtering
+- **Toast**: Global notification system
 
-- **Button**: `variant="primary|secondary|ghost|danger"` `size="sm|md|lg"`
-- **Input**: Full form control with labels, errors, hints
-- **Card**: `variant="default|elevated|glass"`
-- **Warmth Badge**: Automatically styles based on score (cool/warm/hot)
+## 📊 Data Models
 
-## 📡 API Integration
+### Persona
+- Identity (name, company, role, languages)
+- Tone & Style (tone chips, emojis, phrases)
+- Company info & compliance
+- Catalog & pricing rules
+- Conversation playbook
+- Automation settings
+- Compiled system prompt
 
-### Backend Endpoints
+### Lead
+- Basic info (name, phone, email)
+- Warmth score (0-100)
+- Status (inactive/active/waiting/won/lost)
+- Dynamic tags (user-defined schemas)
+- Activity timestamps
 
-The frontend connects to the following Warmly AI backend endpoints:
+### Conversation
+- Lead reference
+- Message history
+- Unread count
+- Last message
 
-```typescript
-// Messages
-POST /api/messages/user        // Send message
-POST /api/messages/system       // System instructions
-WS   /api/messages/user/websocket  // Real-time chat
+### Automation
+- Type (warmth_range, inactivity, drip)
+- Filters (warmth, tags, status)
+- Schedule (cadence, quiet hours)
+- Template
+- Execution stats
 
-// Threads
-GET  /api/threads/{id}/state    // Get thread state
-GET  /api/threads/{id}/history  // Get history
-DEL  /api/threads/{id}          // Clear thread
+### Bulk Message
+- Message content
+- Recipient filters
+- Status (draft/scheduled/sending/sent/failed)
+- Success/fail counts
 
-// Knowledge Base
-POST /api/vectorstore/documents // Upload documents
+## 🔐 Security
 
-// Graph
-GET  /api/graph/mermaid         // Workflow visualization
-```
+- Firebase Authentication tokens
+- HTTP interceptor for automatic token injection
+- Auth guards on protected routes
+- Firestore security rules (configure in Firebase Console)
 
-### Configuration
+## 🚢 Deployment
 
-Update `src/environments/environment.ts` with your backend URL:
-
-```typescript
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:8000',  // Your backend URL
-  wsUrl: 'ws://localhost:8000'       // WebSocket URL
-};
-```
-
-## 📁 Project Structure
-
-```
-warmly-frontend/
-├── src/
-│   ├── app/
-│   │   ├── core/
-│   │   │   └── services/
-│   │   │       └── warmly-api.service.ts    # API client
-│   │   ├── features/                         # Feature modules
-│   │   │   ├── ai-manager/
-│   │   │   ├── conversations/
-│   │   │   ├── leads/
-│   │   │   ├── funnel/
-│   │   │   ├── broadcast/
-│   │   │   └── settings/
-│   │   ├── layout/
-│   │   │   └── floating-sidebar/             # Glass sidebar
-│   │   ├── shared/
-│   │   │   └── components/                   # Reusable components
-│   │   │       ├── button/
-│   │   │       ├── input/
-│   │   │       ├── card/
-│   │   │       └── warmth-badge/
-│   │   ├── app.ts                            # Root component
-│   │   ├── app.config.ts                     # App configuration
-│   │   └── app.routes.ts                     # Routing config
-│   ├── environments/
-│   │   ├── environment.ts                    # Dev config
-│   │   └── environment.prod.ts               # Prod config
-│   └── styles.css                            # Global styles + Tailwind
-├── tailwind.config.js                        # Tailwind configuration
-├── postcss.config.js                         # PostCSS config
-└── angular.json                              # Angular CLI config
-```
-
-## 🎭 Usage Examples
-
-### Using the Button Component
-
-```typescript
-<app-button 
-  variant="primary" 
-  size="lg"
-  [loading]="isLoading"
-  (buttonClick)="handleClick()"
->
-  Click Me
-</app-button>
-```
-
-### Using the Warmth Badge
-
-```typescript
-<app-warmth-badge [score]="75" />
-<!-- Displays: "Hot 75" with red styling -->
-```
-
-### Using the Card Component
-
-```typescript
-<app-card 
-  variant="elevated" 
-  title="My Card"
-  subtitle="With a subtitle"
->
-  <p>Card content goes here</p>
-</app-card>
-```
-
-### Making API Calls
-
-```typescript
-import { WarmlyApiService } from './core/services/warmly-api.service';
-
-export class MyComponent {
-  private api = inject(WarmlyApiService);
-
-  sendMessage() {
-    this.api.sendMessage({
-      data: 'Hello!',
-      thread_id: 'thread-123'
-    }).subscribe(response => {
-      console.log('Response:', response);
-    });
-  }
-
-  uploadDocs(files: File[]) {
-    this.api.uploadDocuments(files).subscribe(result => {
-      console.log('Upload complete:', result);
-    });
-  }
-}
-```
-
-## 🔧 Development
-
-### Running Linter
+### Firebase Hosting
 
 ```bash
-npm run lint
+# Build
+npm run build
+
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login
+firebase login
+
+# Initialize
+firebase init hosting
+
+# Deploy
+firebase deploy --only hosting
 ```
 
-### Running Tests
+### Other Platforms
+
+The built files are in `dist/warmly-frontend/` and can be deployed to:
+- Vercel
+- Netlify
+- AWS S3 + CloudFront
+- Google Cloud Storage
+- Any static hosting
+
+## 🧪 Testing
 
 ```bash
+# Run unit tests
 npm test
+
+# Run e2e tests
+npm run e2e
+
+# Code coverage
+npm run test:coverage
 ```
 
-### Building for Docker
+## 📝 Development Notes
 
-```dockerfile
-FROM node:20-alpine as build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
+### Mock Mode
 
-FROM nginx:alpine
-COPY --from=build /app/dist/warmly-frontend/browser /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
+The app runs in "mock mode" by default, using localStorage instead of real APIs. This allows:
+- ✅ Full UI testing without backend
+- ✅ Sample data initialization
+- ✅ Offline development
 
-## 🐛 Troubleshooting
+To enable real API mode, update `environment.ts` with your backend URL.
 
-### Tailwind not working
+### State Management
 
-Make sure `postcss.config.js` exists and Tailwind is imported in `styles.css`:
+Uses Angular Signals for reactive state:
+- Services hold `signal()` state
+- Components use `computed()` for derived values
+- Automatic change detection
 
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
+### Styling
 
-### API connection errors
+TailwindCSS with custom Warmly theme:
+- Utility-first approach
+- Custom color palette
+- Responsive breakpoints
+- Custom components in `@layer`
 
-1. Check backend is running: `http://localhost:8000/docs`
-2. Verify `environment.ts` has correct `apiUrl`
-3. Check browser console for CORS errors
+## 🐛 Known Issues & Limitations
 
-### Build errors
-
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Clear Angular cache
-rm -rf .angular
-```
-
-## 📚 Resources
-
-- [Angular Documentation](https://angular.dev)
-- [Tailwind CSS Docs](https://tailwindcss.com/docs)
-- [Warmly AI Backend](../warmly-ai/README.md)
-- [Design Reference](../warmly-ui/)
-
-## 🎯 Roadmap
-
-- [ ] Add drag-and-drop to Funnel view
-- [ ] Implement real-time WebSocket updates
-- [ ] Add persona creation wizard
-- [ ] Add WhatsApp connection modal
-- [ ] Implement auth guards
-- [ ] Add dark mode toggle
-- [ ] Add internationalization (i18n)
-- [ ] Add E2E tests with Cypress
-- [ ] Add Storybook for component documentation
+- File upload for persona catalog not fully implemented (UI only)
+- Real-time WebSocket connection needs backend
+- Some automation features are UI-ready but need backend integration
+- Image/audio attachments in conversations need backend support
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## 📄 License
 
-This project is part of the Warmly infrastructure and follows the same license.
+MIT License - See LICENSE file for details
 
 ## 🙏 Acknowledgments
 
-- Design inspiration from [warmly-ui](../warmly-ui/)
-- Built with ❤️ for the Hackathon
-- Powered by Angular, Tailwind CSS, and the amazing OSS community
+Built with ❤️ using:
+- Angular
+- TailwindCSS
+- Firebase
+- And many amazing open-source libraries
 
 ---
 
-**Made with 🔥 by the Warmly Team**
+**Made by Warmly Team** | © 2025
 
-For issues and support, check the [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)

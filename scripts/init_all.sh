@@ -27,7 +27,6 @@ Starts all docker-compose stacks in the correct order:
   - Starts reverse proxy (Traefik)
   - Starts platform services (Dashy, Portainer, Healthcheck)
   - Starts shared services (Database, Vector)
-  - Starts client stacks (prisma/attendant first, then others)
 
 Options:
   --pull        Pull fresh images before starting
@@ -129,14 +128,11 @@ b "==> Starting shared services (database, vector)"
 run_compose "clients/shared/database"
 run_compose "clients/shared/vector"
 
-b "==> Starting client stacks (prisma/attendant first, then others)"
-run_compose "clients/prisma/attendant"
-
+b "==> Starting client stacks"
 while IFS= read -r compose_file; do
   rel_dir="${compose_file%/*}"
   case "$rel_dir" in
-    */clients/shared/*) continue ;;
-    */clients/prisma/attendant) continue ;;
+    */clients/shared/*) continue ;;   # skip shared (já iniciado acima)
   esac
   run_compose "$rel_dir"
 done < <(

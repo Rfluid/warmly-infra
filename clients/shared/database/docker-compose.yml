@@ -7,7 +7,7 @@ services:
             POSTGRES_PASSWORD: postgres
             POSTGRES_DB: postgres
         volumes:
-            - prisma_database:/var/lib/postgresql/data
+            - warmly_database:/var/lib/postgresql/data
         networks:
             - shared
 
@@ -16,4 +16,4 @@ networks:
         external: true
 
 volumes:
-    prisma_database:
+    warmly_database:

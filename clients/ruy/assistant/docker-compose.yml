@@ -1,0 +1,117 @@
+services:
+    warmly:
+        image: rfluid/warmly-ai:latest
+        env_file:
+            - .env
+        environment:
+            POSTGRES_URI: postgresql://postgres:postgres@database:5432/${CLIENT_ID}_${STACK_NAME}?sslmode=disable
+            MILVUS_URI: http://milvus:19530
+            MILVUS_COLLECTION: ${CLIENT_ID}_${STACK_NAME}
+            DATA_DIR: /app/data
+            PROMPTS_DIR: /app/prompts
+            API_URL: http://localhost:8000
+        volumes:
+            - ./data:/app/data
+            - ./prompts:/app/prompts
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=edge
+
+            # Backend
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_backend.rule=Host(`backend.${STACK_NAME}.${CLIENT_ID}.lvh.me`)
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_backend.entrypoints=web
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_backend.service=${CLIENT_ID}_${STACK_NAME}_backend
+            - traefik.http.services.${CLIENT_ID}_${STACK_NAME}_backend.loadbalancer.server.port=8000
+
+            # Frontend
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_frontend.rule=Host(`${STACK_NAME}.${CLIENT_ID}.lvh.me`)
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_frontend.entrypoints=web
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_frontend.service=${CLIENT_ID}_${STACK_NAME}_frontend
+            - traefik.http.services.${CLIENT_ID}_${STACK_NAME}_frontend.loadbalancer.server.port=8501
+        networks:
+            - edge
+            - shared
+            - internal
+
+        depends_on:
+            - create-db
+
+    waha:
+        image: devlikeapro/waha
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            WAHA_API_KEY: sha512:fe09097e63d3f8c204042c65eb6490b9076bbadef3b06165d003880c65dd467225f89ce52e20eb325b796ff98ea494c8ea30a66bc5f7e1feded385623e83e27d
+        volumes:
+            - waha_sessions:/app/.sessions
+            # - ./sessions:/app/.sessions
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=edge
+
+            # Backend
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_waha.rule=Host(`waha.${STACK_NAME}.${CLIENT_ID}.lvh.me`)
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_waha.entrypoints=web
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_waha.service=${CLIENT_ID}_${STACK_NAME}_waha
+            - traefik.http.services.${CLIENT_ID}_${STACK_NAME}_waha.loadbalancer.server.port=3000
+        networks:
+            - internal
+            - edge
+
+    ai-adapter:
+        image: ai-adapter:latest
+        env_file:
+            - .env
+        environment:
+            APP_HOST: 0.0.0.0
+            APP_PORT: 8080
+            WAHA_BASE_URL: http://waha:3000
+            AI_BASE_URL: http://warmly:8000
+            AI_MESSAGES_USER_PATH: /agent/messages/user
+            THREAD_PREFIX_WAHA: "waha:"
+            CHAT_INTERFACE: api
+            MAX_RETRIES: 1
+            LOOP_THRESHOLD: 3
+            TOP_K: 5
+            SUMMARIZE_MESSAGE_WINDOW: 4
+            SUMMARIZE_MESSAGE_KEEP: 6
+            SUMMARIZE_SYSTEM_MESSAGES: "false"
+        depends_on:
+            - waha
+            - warmly
+        restart: unless-stopped
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=edge
+
+            # Backend
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_adapter.rule=Host(`aiadapter.${STACK_NAME}.${CLIENT_ID}.lvh.me`)
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_adapter.entrypoints=web
+            - traefik.http.routers.${CLIENT_ID}_${STACK_NAME}_adapter.service=${CLIENT_ID}_${STACK_NAME}_adapter
+            - traefik.http.services.${CLIENT_ID}_${STACK_NAME}_adapter.loadbalancer.server.port=8080
+        networks:
+            - edge
+            - internal
+
+    create-db:
+        image: postgres:16-alpine
+        entrypoint: >
+            sh -c '
+            PGPASSWORD=postgres psql -h database -U postgres -d postgres -c "CREATE DATABASE ${CLIENT_ID}_${STACK_NAME};"
+            '
+        networks:
+            - shared
+        restart: "no"
+
+networks:
+    internal:
+        internal: true
+    edge:
+        external: true
+    shared:
+        external: true
+
+volumes:
+    waha_sessions:
+        name: ${CLIENT_ID}_${STACK_NAME}_waha_sessions

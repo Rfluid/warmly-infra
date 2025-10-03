@@ -1,0 +1,17 @@
+{
+  "id": "ruy_assistant2",
+  "client_id": "ruy",
+  "name": "assistant2",
+  "template_id": "warmly",
+  "status": "running",
+  "environment": {
+    "CLIENT_ID": "ruy",
+    "STACK_NAME": "assistant2",
+    "WAHA_API_KEY": "sha512:fe09097e63d3f8c204042c65eb6490b9076bbadef3b06165d003880c65dd467225f89ce52e20eb325b796ff98ea494c8ea30a66bc5f7e1feded385623e83e27d",
+    "WAHA_API_KEY_PLAIN": "123456",
+    "WAHA_DASHBOARD_PASSWORD": "123456"
+  },
+  "created_at": "2025-10-03T14:28:45.281828621-03:00",
+  "updated_at": "2025-10-03T14:28:45.281828702-03:00",
+  "path": "../clients/ruy/assistant2"
+}

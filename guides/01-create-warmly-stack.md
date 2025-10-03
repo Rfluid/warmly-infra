@@ -67,14 +67,14 @@ Colete as seguintes informações antes de começar:
 
 ### Informações Obrigatórias
 
-| Campo | Descrição | Exemplo |
-|-------|-----------|---------|
-| **Nome do Cliente** | Identificador único do cliente | `acme-corp` |
-| **Domínio** | Subdomínio para acesso via Traefik | `acme.lvh.me` ou `acme.seudominio.com` |
-| **ID do Cliente WAHA** | ID usado pelo WAHA para identificar este cliente | `acme-123` ou `5511999999999` |
-| **BigQuery Table ID** | Tabela para registro de intenções | `seu-projeto.warmly.purchase_intents` |
-| **LLM Provider** | Provedor do modelo de linguagem | `openai`, `anthropic`, `gemini`, `ollama` |
-| **LLM Model** | Modelo específico | `gpt-4o`, `claude-3-5-sonnet-20241022`, `mistral` |
+| Campo                  | Descrição                                        | Exemplo                                           |
+| ---------------------- | ------------------------------------------------ | ------------------------------------------------- |
+| **Nome do Cliente**    | Identificador único do cliente                   | `acme-corp`                                       |
+| **Domínio**            | Subdomínio para acesso via Traefik               | `acme.lvh.me` ou `acme.seudominio.com`            |
+| **ID do Cliente WAHA** | ID usado pelo WAHA para identificar este cliente | `acme-123` ou `5511999999999`                     |
+| **BigQuery Table ID**  | Tabela para registro de intenções                | `seu-projeto.warmly.purchase_intents`             |
+| **LLM Provider**       | Provedor do modelo de linguagem                  | `openai`, `anthropic`, `gemini`, `ollama`         |
+| **LLM Model**          | Modelo específico                                | `gpt-4o`, `claude-3-5-sonnet-20241022`, `mistral` |
 
 ### Informações Opcionais
 
@@ -271,42 +271,41 @@ Edite o `docker-compose.yml` para incluir labels do Traefik e configurações de
 
 ```yaml
 services:
-  warmly-ai:
-    image: warmly-ai:latest
-    container_name: warmly-ai-acme
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      POSTGRES_URI: postgresql://postgres:postgres@database:5432/postgres?sslmode=disable
-      MILVUS_URI: http://milvus:19530
-      DATA_DIR: /app/data
-      PROMPTS_DIR: /app/prompts
-      API_URL: http://localhost:8000
-    volumes:
-      - ./data:/app/data
-      - ./prompts:/app/prompts
-    networks:
-      - edge    # Para acesso via Traefik
-      - shared  # Para PostgreSQL e Milvus
-    labels:
-      # Backend API
-      - "traefik.enable=true"
-      - "traefik.docker.network=edge"
-      - "traefik.http.routers.acme-api.rule=Host(`api.acme.lvh.me`)"
-      - "traefik.http.routers.acme-api.entrypoints=web"
-      - "traefik.http.services.acme-api.loadbalancer.server.port=8000"
-      
-      # Frontend (opcional, se quiser expor)
-      - "traefik.http.routers.acme-frontend.rule=Host(`chat.acme.lvh.me`)"
-      - "traefik.http.routers.acme-frontend.entrypoints=web"
-      - "traefik.http.services.acme-frontend.loadbalancer.server.port=8501"
+    warmly-ai:
+        image: warmly-ai:latest
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            POSTGRES_URI: postgresql://postgres:postgres@database:5432/postgres?sslmode=disable
+            MILVUS_URI: http://milvus:19530
+            DATA_DIR: /app/data
+            PROMPTS_DIR: /app/prompts
+            API_URL: http://localhost:8000
+        volumes:
+            - ./data:/app/data
+            - ./prompts:/app/prompts
+        networks:
+            - edge # Para acesso via Traefik
+            - shared # Para PostgreSQL e Milvus
+        labels:
+            # Backend API
+            - "traefik.enable=true"
+            - "traefik.docker.network=edge"
+            - "traefik.http.routers.acme-api.rule=Host(`api.acme.lvh.me`)"
+            - "traefik.http.routers.acme-api.entrypoints=web"
+            - "traefik.http.services.acme-api.loadbalancer.server.port=8000"
+
+            # Frontend (opcional, se quiser expor)
+            - "traefik.http.routers.acme-frontend.rule=Host(`chat.acme.lvh.me`)"
+            - "traefik.http.routers.acme-frontend.entrypoints=web"
+            - "traefik.http.services.acme-frontend.loadbalancer.server.port=8501"
 
 networks:
-  edge:
-    external: true
-  shared:
-    external: true
+    edge:
+        external: true
+    shared:
+        external: true
 ```
 
 ## 🎨 Passo 4: Personalizar Prompts
@@ -447,6 +446,7 @@ warmly-ai-acme      warmly-ai:latest   Up 2 minutes (healthy)
 ### 7.1. Obter Informações do WAHA
 
 Você precisará:
+
 - **WAHA_URL**: URL da instância WAHA (ex: `http://waha:3000`)
 - **WAHA_API_KEY**: Chave API do WAHA
 - **SESSION_ID**: ID da sessão do WhatsApp (geralmente o número)
@@ -641,8 +641,8 @@ Após criar e implantar a stack:
 ## 🆘 Suporte
 
 Em caso de problemas:
+
 1. Consulte a seção de Troubleshooting
 2. Verifique os logs: `docker compose logs -f`
 3. Abra uma issue no repositório
 4. Contate a equipe de infraestrutura
-

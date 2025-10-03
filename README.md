@@ -20,9 +20,11 @@ Infraestrutura completa para orquestração de serviços multitenant com Docker 
 Para instruções detalhadas sobre operações específicas, consulte os guias na pasta `guides/`:
 
 ### [📘 Guia 1: Criando uma Stack Warmly](guides/01-create-warmly-stack.md)
+
 Passo a passo completo para criar e implantar uma nova stack Warmly-AI para um cliente usando o Stack Manager.
 
 **Tópicos cobertos:**
+
 - Preparação de informações do cliente
 - Uso do Stack Manager (CLI ou criação manual)
 - Configuração de credenciais do Google Cloud e variáveis de ambiente
@@ -33,9 +35,11 @@ Passo a passo completo para criar e implantar uma nova stack Warmly-AI para um c
 - Verificação, testes e troubleshooting
 
 ### [🎨 Guia 2: Editando Prompts](guides/02-edit-prompts.md)
+
 Como personalizar o comportamento do agente Warmly-AI através da edição de arquivos de prompt em Markdown.
 
 **Tópicos cobertos:**
+
 - Visão geral dos arquivos de prompt disponíveis
 - Como editar `system.md` (personalidade e regras gerais)
 - Como editar `evaluate_tools.md` (lógica de seleção de ferramentas)
@@ -45,9 +49,11 @@ Como personalizar o comportamento do agente Warmly-AI através da edição de ar
 - Boas práticas e troubleshooting
 
 ### [🔗 Guia 3: IDs Cliente WAHA ↔ BigQuery](guides/03-client-ids-waha-bigquery.md)
+
 Documentação da correspondência entre IDs de cliente do WAHA e registros no BigQuery.
 
 **Tópicos cobertos:**
+
 - Fluxo de dados: WhatsApp → WAHA → Warmly-AI → BigQuery
 - Formato dos IDs (apenas dígitos, sem formatação)
 - Como os IDs são propagados através do sistema
@@ -105,6 +111,7 @@ Este projeto fornece uma infraestrutura completa de orquestração multitenant b
 ## 🔧 Componentes
 
 ### 1. Reverse Proxy
+
 - **Traefik v3.1**: Roteamento HTTP com descoberta automática de serviços Docker
 - Dashboard disponível em `http://traefik.lvh.me`
 - Configurado para usar a rede `edge` para comunicação com serviços expostos
@@ -112,15 +119,18 @@ Este projeto fornece uma infraestrutura completa de orquestração multitenant b
 ### 2. Serviços de Plataforma
 
 #### Dashy
+
 - Dashboard unificado para todos os serviços
 - Acesso: `http://dashboard.lvh.me`
 - Configuração: `platform/dashy.conf.yml`
 
 #### Portainer
+
 - Interface web para gerenciamento de containers, imagens e volumes
 - Acesso: `http://portainer.lvh.me`
 
 #### Gatus (Healthcheck)
+
 - Monitoramento de saúde e uptime de serviços
 - Acesso: `http://status.lvh.me`
 - Configuração de monitores: `platform/monitors/`
@@ -128,21 +138,24 @@ Este projeto fornece uma infraestrutura completa de orquestração multitenant b
 ### 3. Serviços Compartilhados
 
 #### PostgreSQL (Database)
+
 - **Imagem**: `postgres:16`
 - **Porta**: Interna na rede `shared`
 - **Credenciais padrão**: postgres/postgres
-- **Volume**: `prisma_database` para persistência de dados
+- **Volume**: `warmly_database` para persistência de dados
 
 #### Milvus (Vector Database)
+
 - **Imagem**: `milvusdb/milvus:v2.3.9`
 - **Porta**: `19530` (exposta)
 - **Dependências**: etcd e MinIO
 - **Redes**: `internal` (para etcd/minio) e `shared` (para clientes)
-- **Volumes**: `prisma_etcd_data`, `prisma_minio_data`
+- **Volumes**: `warmly_etcd_data`, `warmly_minio_data`
 
 ### 4. Warmly-AI
 
 Agente de IA com capacidades de RAG e execução de ferramentas. Inclui:
+
 - Backend FastAPI (porta 8000)
 - Frontend Streamlit (porta 8501)
 - Integração com PostgreSQL e Milvus
@@ -168,6 +181,7 @@ Ferramenta para deploy e gerenciamento automatizado de stacks de clientes.
 ### Instalação do Docker
 
 #### Ubuntu/Debian
+
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
@@ -175,6 +189,7 @@ sudo usermod -aG docker $USER
 ```
 
 #### Verificar instalação
+
 ```bash
 docker --version
 docker compose version
@@ -201,12 +216,14 @@ O script `init_all.sh` inicializa todos os serviços na ordem correta:
 ```
 
 Opções disponíveis:
+
 - `--pull`: Baixa as imagens mais recentes antes de iniciar
 - `--recreate`: Força a recriação de containers
 - `--no-color`: Desabilita saída colorida
 - `--help`: Mostra ajuda
 
 Exemplo com pull e recreate:
+
 ```bash
 ./scripts/init_all.sh --pull --recreate
 ```
@@ -229,7 +246,7 @@ O script inicializa os serviços na seguinte ordem:
 2. **Reverse Proxy** (Traefik)
 3. **Serviços de Plataforma** (Dashy, Portainer, Healthcheck)
 4. **Serviços Compartilhados** (PostgreSQL, Milvus)
-5. **Stacks de Clientes** (prisma/attendant primeiro, depois os demais)
+5. **Stacks de Clientes**
 
 ```bash
 # Inicialização básica
@@ -295,12 +312,14 @@ make prod-down
 #### Configuração do Warmly-AI
 
 1. Copie o arquivo de exemplo de ambiente:
+
 ```bash
 cd warmly-ai
 cp example.env .env
 ```
 
 2. Configure as variáveis essenciais em `.env`:
+
 ```bash
 # Provedor de LLM (ollama, openai, gemini, cohere, anthropic, vertexai)
 LLM_PROVIDER=ollama
@@ -316,6 +335,7 @@ BIGQUERY_TABLE_ID=seu-projeto.dataset.tabela
 ```
 
 3. Adicione as credenciais do Google Cloud:
+
 ```bash
 # Coloque o arquivo JSON da service account em:
 warmly-ai/data/service-account.google.json
@@ -328,6 +348,7 @@ O Stack Manager é um submodule dedicado ao gerenciamento automatizado de stacks
 **[📘 Guia Completo: Criando uma Stack Warmly](guides/01-create-warmly-stack.md)**
 
 Este guia inclui:
+
 - Preparação de informações do cliente
 - Uso do Stack Manager (CLI ou manual)
 - Configuração de credenciais e variáveis de ambiente
@@ -366,6 +387,7 @@ Para parar e remover todos os containers:
 ```
 
 Opções disponíveis:
+
 - `--volumes`: Remove também os volumes nomeados (⚠️ **dados serão perdidos**)
 - `--remove-orphans`: Remove containers órfãos
 - `--no-color`: Desabilita saída colorida
@@ -386,18 +408,21 @@ Opções disponíveis:
 O projeto utiliza duas redes principais:
 
 ### Rede `edge`
+
 - **Tipo**: bridge (externa)
 - **Uso**: Comunicação entre Traefik e serviços expostos publicamente
 - **Serviços**: Traefik, Dashy, Portainer, Healthcheck, APIs de clientes
 - **Criação**: Automática via `scripts/init_all.sh`
 
 ### Rede `shared`
+
 - **Tipo**: bridge (externa)
 - **Uso**: Recursos compartilhados entre todos os clientes
 - **Serviços**: PostgreSQL, Milvus, stacks de clientes
 - **Criação**: Automática via `scripts/init_all.sh`
 
 ### Redes Internas de Clientes
+
 Cada stack de cliente pode ter sua própria rede interna para isolamento adicional.
 
 ### Criação Manual de Redes (se necessário)
@@ -410,12 +435,15 @@ docker network create --driver bridge shared
 ## 🎛️ Gerenciamento
 
 ### Portainer
+
 Interface web completa para gerenciamento de containers:
+
 ```
 http://portainer.lvh.me
 ```
 
 Recursos:
+
 - Visualizar e gerenciar stacks
 - Monitorar recursos (CPU, memória, rede)
 - Executar comandos em containers
@@ -423,19 +451,25 @@ Recursos:
 - Ver logs em tempo real
 
 ### Dashy (Dashboard)
+
 Dashboard centralizado com links para todos os serviços:
+
 ```
 http://dashboard.lvh.me
 ```
 
 ### Traefik Dashboard
+
 Visualizar roteadores, middlewares e serviços:
+
 ```
 http://traefik.lvh.me
 ```
 
 ### Gatus (Status Page)
+
 Monitoramento de saúde e uptime:
+
 ```
 http://status.lvh.me
 ```
@@ -481,61 +515,66 @@ clients/
 ### Passos para Adicionar um Novo Cliente
 
 1. **Criar estrutura de diretórios**:
+
 ```bash
 mkdir -p clients/novo-cliente/servico1
 ```
 
 2. **Criar `docker-compose.yml`**:
+
 ```yaml
 # clients/novo-cliente/servico1/docker-compose.yml
 services:
-  api:
-    image: sua-imagem:latest
-    restart: unless-stopped
-    networks:
-      - edge      # Para exposição via Traefik
-      - shared    # Para acessar PostgreSQL e Milvus
-    environment:
-      POSTGRES_URI: postgresql://postgres:postgres@database:5432/postgres
-      MILVUS_URI: http://milvus:19530
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=edge"
-      - "traefik.http.routers.novo-cliente-api.rule=Host(`api.novo-cliente.lvh.me`)"
-      - "traefik.http.routers.novo-cliente-api.entrypoints=web"
-      - "traefik.http.services.novo-cliente-api.loadbalancer.server.port=8000"
+    api:
+        image: sua-imagem:latest
+        restart: unless-stopped
+        networks:
+            - edge # Para exposição via Traefik
+            - shared # Para acessar PostgreSQL e Milvus
+        environment:
+            POSTGRES_URI: postgresql://postgres:postgres@database:5432/postgres
+            MILVUS_URI: http://milvus:19530
+        labels:
+            - "traefik.enable=true"
+            - "traefik.docker.network=edge"
+            - "traefik.http.routers.novo-cliente-api.rule=Host(`api.novo-cliente.lvh.me`)"
+            - "traefik.http.routers.novo-cliente-api.entrypoints=web"
+            - "traefik.http.services.novo-cliente-api.loadbalancer.server.port=8000"
 
 networks:
-  edge:
-    external: true
-  shared:
-    external: true
+    edge:
+        external: true
+    shared:
+        external: true
 ```
 
 3. **Adicionar ao Dashboard Dashy** (opcional):
+
 ```yaml
 # platform/dashy.conf.yml
 sections:
-  - name: "Novo Cliente"
-    icon: "mdi:account-circle-outline"
-    items:
-      - title: "API"
-        url: "http://api.novo-cliente.lvh.me"
-        icon: "mdi:api"
+    - name: "Novo Cliente"
+      icon: "mdi:account-circle-outline"
+      items:
+          - title: "API"
+            url: "http://api.novo-cliente.lvh.me"
+            icon: "mdi:api"
 ```
 
 4. **Adicionar monitor de saúde** (opcional):
+
 ```yaml
 # platform/monitors/novo-cliente-api.yaml
 endpoints:
-  - name: "Novo Cliente API"
-    url: "http://api.novo-cliente.lvh.me/health"
-    interval: 30s
-    conditions:
-      - "[STATUS] == 200"
+    - name: "Novo Cliente API"
+      url: "http://api.novo-cliente.lvh.me/health"
+      interval: 30s
+      conditions:
+          - "[STATUS] == 200"
 ```
 
 5. **Inicializar o novo stack**:
+
 ```bash
 # O script init_all.sh detectará automaticamente o novo cliente
 ./scripts/init_all.sh
@@ -663,6 +702,7 @@ Este projeto está licenciado sob a Licença MIT.
 ## 📞 Suporte
 
 Para questões e suporte:
+
 - Abra uma issue no GitHub
 - Consulte a documentação dos submodules individuais
 - Verifique logs via Portainer ou Docker CLI
@@ -675,4 +715,3 @@ Para questões e suporte:
 - **Dashy**: https://dashy.to/docs/
 - **Milvus**: https://milvus.io/docs/
 - **PostgreSQL**: https://www.postgresql.org/docs/
-

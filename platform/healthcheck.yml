@@ -8,7 +8,6 @@ volumes:
 services:
     gatus:
         image: ghcr.io/twin/gatus:latest
-        container_name: gatus
         restart: unless-stopped
         networks: [edge]
         environment:
@@ -29,7 +28,6 @@ services:
     # Observa alterações em platform/monitors/*.yaml e envia SIGHUP ao Gatus
     gatus-reloader:
         image: alpine:3.20
-        container_name: gatus-reloader
         restart: unless-stopped
         depends_on:
             - gatus

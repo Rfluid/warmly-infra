@@ -56,12 +56,12 @@ sections:
           - title: "Docs: Structure"
             description: "guides/01-structure.md"
             icon: "mdi:file-tree"
-            url: "https://github.com/Rfluid/prisma-infra/guides/01-structure.md"
+            url: "https://github.com/Rfluid/warmly-infra/guides/01-structure.md"
             target: "newtab"
           - title: "Docs: Create New Stack"
             description: "guides/02-create-new-stack.md"
             icon: "mdi:playlist-plus"
-            url: "https://github.com/Rfluid/prisma-infra/guides/02-create-new-stack.md"
+            url: "https://github.com/Rfluid/warmly-infra/guides/02-create-new-stack.md"
             target: "newtab"
 
     # =======================
