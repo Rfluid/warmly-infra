@@ -9,3 +9,7 @@
 [submodule "warmly-ui"]
 	path = warmly-ui
 	url = git@github.com:pehqge/warmly-ui.git
+[submodule "ai-adapter"]
+	path = ai-adapter
+	url = git@github.com:Rfluid/ai-adapter.git
+	branch = main

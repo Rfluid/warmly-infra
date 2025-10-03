@@ -1,0 +1,21 @@
+{
+  "id": "teste02_assistant2",
+  "client_id": "teste02",
+  "name": "assistant2",
+  "template_id": "warmly",
+  "status": "running",
+  "environment": {
+    "CLIENT_ID": "teste02",
+    "EMBEDDING_MODEL_NAME": "text-embedding-3-small",
+    "EMBEDDING_PROVIDER": "openai",
+    "LLM_MODEL_NAME": "gpt-4o-mini",
+    "LLM_PROVIDER": "openai",
+    "STACK_NAME": "assistant2",
+    "WAHA_API_KEY": "sha512:fe09097e63d3f8c204042c65eb6490b9076bbadef3b06165d003880c65dd467225f89ce52e20eb325b796ff98ea494c8ea30a66bc5f7e1feded385623e83e27d",
+    "WAHA_API_KEY_PLAIN": "12345678",
+    "WAHA_DASHBOARD_PASSWORD": "12345678"
+  },
+  "created_at": "2025-10-03T15:32:44.197022845-03:00",
+  "updated_at": "2025-10-03T15:33:26.361879904-03:00",
+  "path": "../clients/teste02/assistant2"
+}
