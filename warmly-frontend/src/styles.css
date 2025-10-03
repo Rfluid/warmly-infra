@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-size: 16px;
+  }
+
+  * {
+    @apply border-warmly-border outline-warmly-primary/50;
+  }
+
+  body {
+    @apply bg-warmly-bg text-warmly-text-primary;
+    background: linear-gradient(135deg, rgba(255, 122, 89, 0.06) 0%, rgba(255, 78, 58, 0.08) 100%), #F8FAFC;
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+}
+
+@layer components {
+  /* Glass morphism utilities */
+  .glass {
+    @apply backdrop-blur-warmly border border-white/35;
+    background: rgba(255, 255, 255, 0.55);
+  }
+
+  .glass-strong {
+    @apply backdrop-blur-warmly-strong border border-white/40;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Gradient utilities */
+  .gradient-warmly {
+    background: linear-gradient(135deg, #FF7A59 0%, #FF4E3A 100%);
+  }
+
+  .gradient-warmly-soft {
+    background: linear-gradient(135deg, rgba(255, 122, 89, 0.06) 0%, rgba(255, 78, 58, 0.08) 100%);
+  }
+
+  /* Shadow utilities */
+  .shadow-card {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .shadow-fab {
+    box-shadow: 0 8px 24px rgba(255, 122, 89, 0.3);
+  }
+
+  .shadow-glass {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-warmly::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-warmly::-webkit-scrollbar-track {
+    @apply bg-warmly-bg/50 rounded-full;
+  }
+
+  .scrollbar-warmly::-webkit-scrollbar-thumb {
+    @apply bg-warmly-primary/30 rounded-full hover:bg-warmly-primary/50;
+  }
+}
+
+/* Typography */
+h1 {
+  @apply text-4xl font-semibold leading-tight;
+}
+
+h2 {
+  @apply text-3xl font-semibold leading-snug;
+}
+
+h3 {
+  @apply text-2xl font-semibold leading-snug;
+}
+
+h4 {
+  @apply text-xl font-medium leading-normal;
+}
+
+p {
+  @apply text-base font-normal leading-relaxed;
+}
+
+/* Animations */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

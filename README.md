@@ -4,6 +4,7 @@ Infraestrutura completa para orquestração de serviços multitenant com Docker 
 
 ## 📋 Índice
 
+- [Guias Detalhados](#-guias-detalhados)
 - [Visão Geral](#-visão-geral)
 - [Arquitetura](#-arquitetura)
 - [Componentes](#-componentes)
@@ -13,6 +14,46 @@ Infraestrutura completa para orquestração de serviços multitenant com Docker 
 - [Redes Docker](#-redes-docker)
 - [Gerenciamento](#-gerenciamento)
 - [Adicionando Novos Clientes](#-adicionando-novos-clientes)
+
+## 📖 Guias Detalhados
+
+Para instruções detalhadas sobre operações específicas, consulte os guias na pasta `guides/`:
+
+### [📘 Guia 1: Criando uma Stack Warmly](guides/01-create-warmly-stack.md)
+Passo a passo completo para criar e implantar uma nova stack Warmly-AI para um cliente usando o Stack Manager.
+
+**Tópicos cobertos:**
+- Preparação de informações do cliente
+- Uso do Stack Manager (CLI ou criação manual)
+- Configuração de credenciais do Google Cloud e variáveis de ambiente
+- Personalização de prompts para o comportamento do agente
+- Popular banco vetorial com documentos do cliente
+- Deploy e inicialização da stack
+- Configuração de webhook do WAHA para integração WhatsApp
+- Verificação, testes e troubleshooting
+
+### [🎨 Guia 2: Editando Prompts](guides/02-edit-prompts.md)
+Como personalizar o comportamento do agente Warmly-AI através da edição de arquivos de prompt em Markdown.
+
+**Tópicos cobertos:**
+- Visão geral dos arquivos de prompt disponíveis
+- Como editar `system.md` (personalidade e regras gerais)
+- Como editar `evaluate_tools.md` (lógica de seleção de ferramentas)
+- Customização de tratamento de erros e sumarização
+- Aplicar alterações e reiniciar containers
+- Exemplos práticos para e-commerce, serviços médicos, B2B
+- Boas práticas e troubleshooting
+
+### [🔗 Guia 3: IDs Cliente WAHA ↔ BigQuery](guides/03-client-ids-waha-bigquery.md)
+Documentação da correspondência entre IDs de cliente do WAHA e registros no BigQuery.
+
+**Tópicos cobertos:**
+- Fluxo de dados: WhatsApp → WAHA → Warmly-AI → BigQuery
+- Formato dos IDs (apenas dígitos, sem formatação)
+- Como os IDs são propagados através do sistema
+- Rastreamento e consultas no BigQuery
+- Consultas SQL úteis para análise
+- Troubleshooting de problemas de correspondência
 
 ## 🎯 Visão Geral
 
@@ -282,14 +323,39 @@ warmly-ai/data/service-account.google.json
 
 ### Deploy do Stack Manager
 
-O Stack Manager é um submodule dedicado ao gerenciamento automatizado de stacks.
+O Stack Manager é um submodule dedicado ao gerenciamento automatizado de stacks. Para instruções detalhadas sobre como usar o Stack Manager para criar novas stacks Warmly-AI, consulte:
+
+**[📘 Guia Completo: Criando uma Stack Warmly](guides/01-create-warmly-stack.md)**
+
+Este guia inclui:
+- Preparação de informações do cliente
+- Uso do Stack Manager (CLI ou manual)
+- Configuração de credenciais e variáveis de ambiente
+- Personalização de prompts
+- Deploy e testes
+- Configuração de webhook do WAHA
+- Troubleshooting completo
+
+Resumo rápido:
 
 ```bash
 cd stack-manager
 
-# Seguir instruções específicas do stack-manager
-# (consulte stack-manager/README.md quando disponível)
+# Criar nova stack para um cliente
+./stack-manager create \
+  --client-name acme-corp \
+  --domain acme.lvh.me \
+  --waha-id 5511999999999 \
+  --bigquery-table warmly-production.clients_data.purchase_intents \
+  --llm-provider openai \
+  --llm-model gpt-4o
+
+# Deploy
+cd ../
+./scripts/init_all.sh
 ```
+
+**Nota sobre IDs de Cliente**: Os IDs de cliente gerados no BigQuery correspondem **exatamente** aos IDs recebidos pelo WAHA (geralmente o número de telefone do WhatsApp). Para mais detalhes, consulte o [Guia de IDs WAHA ↔ BigQuery](guides/03-client-ids-waha-bigquery.md).
 
 ### Teardown de Todas as Stacks
 
@@ -575,6 +641,10 @@ docker system prune -a --volumes
 │   ├── Makefile
 │   └── src/                   # Código-fonte Python
 ├── stack-manager/              # Submodule: Gerenciador de deploy
+├── guides/                     # Guias detalhados
+│   ├── 01-create-warmly-stack.md    # Como criar nova stack
+│   ├── 02-edit-prompts.md           # Como personalizar prompts
+│   └── 03-client-ids-waha-bigquery.md # Correspondência de IDs
 └── README.md                   # Este arquivo
 ```
 
