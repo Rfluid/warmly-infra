@@ -101,7 +101,7 @@ export class StackManagerService {
 
   // Health check for specific services
   checkServiceHealth(serviceUrl: string): Observable<any> {
-    return this.http.get(`${serviceUrl}/health`, {
+    return this.http.get(serviceUrl, {
       responseType: 'json'
     });
   }

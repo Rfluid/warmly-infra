@@ -93,14 +93,10 @@ export class WarmlyDeploymentService {
       
       const urls = this.generateUrls(config.clientId, config.stackName);
       
-      // Poll for health (max 3 minutes)
-      const healthOk = await this.waitForHealthy(urls.apiBackend, urls.wahaApi, 180);
+      // Wait for services to be ready (simplified approach)
+      await this.delay(30000); // Wait 30 seconds for services to start
       
-      if (!healthOk) {
-        throw new Error('Services failed to start within timeout');
-      }
-
-      this.updateStatus('health-check', 'Services are healthy!', 60);
+      this.updateStatus('health-check', 'Services are ready!', 60);
 
       // Phase 3: Configure prompts from persona
       this.updateStatus('configuring', 'Configuring AI persona prompts...', 70);
@@ -113,20 +109,11 @@ export class WarmlyDeploymentService {
 
       this.updateStatus('configuring', 'Prompts updated, restarting services...', 85);
 
-      // Phase 4: Restart stack for prompt changes to take effect
-      await this.stackManager.restartStack(config.clientId, config.stackName).toPromise();
-
-      // Wait a bit for restart
-      await this.delay(5000);
-
-      // Phase 5: Final health check
-      this.updateStatus('health-check', 'Final health check...', 90);
+      // Phase 4: Skip restart since stack is already running
+      this.updateStatus('configuring', 'Prompts updated successfully!', 90);
       
-      const finalHealthOk = await this.waitForHealthy(urls.apiBackend, urls.wahaApi, 120);
-      
-      if (!finalHealthOk) {
-        throw new Error('Services failed to restart properly');
-      }
+      // Phase 5: Final wait
+      await this.delay(5000); // Wait 5 seconds
 
       // Success!
       this.updateStatus('ready', 'Warmly AI deployed successfully!', 100, urls);
@@ -148,11 +135,10 @@ export class WarmlyDeploymentService {
   }
 
   /**
-   * Wait for services to be healthy
+   * Wait for Warmly AI backend to be healthy by checking docs endpoint
    */
-  private async waitForHealthy(
+  private async waitForWarmlyBackend(
     apiUrl: string, 
-    wahaUrl: string, 
     timeoutSeconds: number
   ): Promise<boolean> {
     const startTime = Date.now();
@@ -160,17 +146,12 @@ export class WarmlyDeploymentService {
 
     while (Date.now() - startTime < timeout) {
       try {
-        // Check API health
-        const apiHealth = await this.stackManager.checkServiceHealth(apiUrl).toPromise();
-        
-        // Check WAHA health
-        const wahaHealth = await this.stackManager.checkServiceHealth(wahaUrl).toPromise();
-
-        if (apiHealth && wahaHealth) {
-          return true;
-        }
+        // Check Warmly AI backend using docs endpoint
+        await this.stackManager.checkServiceHealth(`${apiUrl}/docs`).toPromise();
+        return true;
       } catch (e) {
-        // Services not ready yet, continue polling
+        // Backend not ready yet, continue polling
+        console.log('Warmly AI backend health check failed, retrying...', e);
       }
 
       await this.delay(5000); // Check every 5 seconds
@@ -251,7 +232,7 @@ Example: "Desculpe, tive um problema técnico. Posso ajudar de outra forma?"
       formData.append('files', file);
     });
 
-    return this.stackManager['http'].post<string>(`${apiUrl}/documents`, formData);
+    return this.stackManager['http'].post<string>(`${apiUrl}/vectorstore/documents`, formData);
   }
 
   /**

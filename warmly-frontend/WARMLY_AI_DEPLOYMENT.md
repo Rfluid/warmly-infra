@@ -259,3 +259,4 @@ O componente mantém um signal `deploymentStatus` com:
 **Versão:** 1.0.0  
 **Desenvolvido por:** AI Assistant with ❤️
 
+
