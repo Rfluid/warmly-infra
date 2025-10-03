@@ -1,0 +1,9 @@
+# Configurações globais (UI, storage, alerting).
+ui:
+    title: "Status"
+    header: "Prisma – Status"
+    link: "http://dashboard.lvh.me"
+
+storage:
+    type: sqlite
+    path: /data/data.db

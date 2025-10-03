@@ -1,0 +1,133 @@
+# Docs: https://dashy.to/docs/configuring
+appConfig:
+    theme: one-dark
+    layout: auto
+    iconSize: large
+    language: en
+    startUrl: http://dashboard.lvh.me
+    showNavHeader: true
+    hideSettings: false
+    footerText: "Prisma Ops · Dashy"
+    externalLinks: []
+
+pageInfo:
+    title: "Prisma – Dashboard"
+    description: "Home for reverse-proxy, platform services, and client stacks"
+    navLinks:
+        - title: "Status"
+          path: "http://status.lvh.me"
+          icon: "mdi:heart-pulse"
+        - title: "Traefik"
+          path: "http://traefik.lvh.me"
+          icon: "mdi:traffic-light"
+        - title: "Portainer"
+          path: "http://portainer.lvh.me"
+          icon: "mdi:docker"
+
+# Optional: global section defaults
+sections:
+    # =======================
+    # 1) Platform
+    # =======================
+    - name: "Platform"
+      icon: "mdi:cloud-lock-outline"
+      displayData:
+          cols: 3
+          collapsed: false
+      items:
+          - title: "Status (Gatus)"
+            description: "Health checks & uptime"
+            icon: "mdi:heart-pulse"
+            url: "http://status.lvh.me"
+            target: "newtab"
+            statusCheck: true # Dashy will ping the URL
+          - title: "Reverse Proxy (Traefik)"
+            description: "Routers, middlewares, services"
+            icon: "mdi:traffic-light"
+            url: "http://traefik.lvh.me"
+            target: "newtab"
+            statusCheck: true
+          - title: "Portainer"
+            description: "Stacks, containers, images"
+            icon: "mdi:docker"
+            url: "http://portainer.lvh.me"
+            target: "newtab"
+            statusCheck: true
+          - title: "Docs: Structure"
+            description: "guides/01-structure.md"
+            icon: "mdi:file-tree"
+            url: "https://github.com/Rfluid/prisma-infra/guides/01-structure.md"
+            target: "newtab"
+          - title: "Docs: Create New Stack"
+            description: "guides/02-create-new-stack.md"
+            icon: "mdi:playlist-plus"
+            url: "https://github.com/Rfluid/prisma-infra/guides/02-create-new-stack.md"
+            target: "newtab"
+
+    # =======================
+    # 2) Client 1
+    # =======================
+    - name: "Client 1"
+      icon: "mdi:account-circle-outline"
+      displayData:
+          cols: 3
+          collapsed: false
+      items:
+          - title: "Client1 API"
+            description: "Backend API"
+            icon: "mdi:api"
+            url: "http://api.client1.lvh.me"
+            target: "newtab"
+            statusCheck: true
+
+    # =======================
+    # 3) Developer Tools
+    # =======================
+    - name: "Developer Tools"
+      icon: "mdi:hammer-wrench"
+      displayData:
+          cols: 3
+          collapsed: true
+      items:
+          - title: "Docker Host"
+            description: "Portainer Home"
+            icon: "mdi:server"
+            url: "http://portainer.lvh.me/#/home"
+            target: "newtab"
+          - title: "Traefik Routers"
+            description: "Debug routing"
+            icon: "mdi:vector-polyline"
+            url: "http://traefik.lvh.me/#/http/routers"
+            target: "newtab"
+          - title: "Traefik Services"
+            description: "Backends and ports"
+            icon: "mdi:cog"
+            url: "http://traefik.lvh.me/#/http/services"
+            target: "newtab"
+# =======================
+# 4) Quick templates to add more clients
+#    Copy a block below, replace `clientX`, and paste into sections.
+# =======================
+# - name: "Client X"
+#   icon: "mdi:account-circle-outline"
+#   displayData:
+#     cols: 3
+#     collapsed: false
+#   items:
+#     - title: "ClientX App"
+#       description: "Frontend"
+#       icon: "mdi:web"
+#       url: "http://app.clientX.lvh.me"
+#       target: "newtab"
+#       statusCheck: true
+#     - title: "ClientX API"
+#       description: "Backend API"
+#       icon: "mdi:api"
+#       url: "http://api.clientX.lvh.me"
+#       target: "newtab"
+#       statusCheck: true
+#     - title: "ClientX Status"
+#       description: "Gatus (optional filter by group)"
+#       icon: "mdi:heart-pulse"
+#       url: "http://status.lvh.me"
+#       target: "newtab"

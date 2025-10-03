@@ -1,0 +1,15 @@
+endpoints:
+    - name: Client1 API
+      group: Client 1
+      url: http://api.client1.lvh.me/
+      interval: 60s
+      client:
+          timeout: 5s
+          insecure: false
+      method: GET
+      conditions:
+          - "[STATUS] == 200"
+          - "[RESPONSE_TIME] < 1000"
+      # headers: { Authorization: "Bearer xxx" }
+      # body: |
+      #   { "ping": "pong" }

@@ -1,0 +1,4 @@
+[submodule "stack-manager"]
+	path = stack-manager
+	url = git@github.com:Rfluid/stack-manager.git
+	branch = main

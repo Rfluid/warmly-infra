@@ -1,0 +1,56 @@
+networks:
+    edge:
+        external: true # create once with: docker network create edge
+
+services:
+    traefik:
+        image: traefik:v3.1
+        container_name: traefik
+        restart: unless-stopped
+        networks:
+            - edge
+        ports:
+            - "80:80" # HTTP entrypoint
+            # - "443:443"          # (optional) HTTPS entrypoint if you manage TLS here
+        command:
+            - --api=true
+            - --api.dashboard=true
+
+            # Providers
+            - --providers.docker=true
+            - --providers.docker.exposedbydefault=false
+            # Ensure Traefik reaches multi-network services via "edge"
+            - --providers.docker.network=edge
+
+            # Entrypoints
+            - --entrypoints.web.address=:80
+            # - --entrypoints.websecure.address=:443   # (optional) if you enable HTTPS
+
+            # Dashboard & logs
+            - --api.dashboard=true
+            - --accesslog=true
+            - --log.level=INFO
+
+            # (Optional) ACME/Let's Encrypt if Traefik will terminate TLS itself
+            # - --certificatesresolvers.le.acme.email=you@example.com
+            # - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+            # - --certificatesresolvers.le.acme.httpchallenge=true
+            # - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            # - ./letsencrypt:/letsencrypt    # (optional) if using ACME storage
+            # - ./dynamic:/etc/traefik/dynamic:ro  # (optional) file provider
+
+        labels:
+            # Expose Traefik dashboard at http://traefik.lvh.me
+            - traefik.enable=true
+            - traefik.docker.network=edge
+            - traefik.http.routers.traefik.rule=Host(`traefik.lvh.me`)
+            - traefik.http.routers.traefik.entrypoints=web
+            - traefik.http.routers.traefik.service=api@internal
+
+            # (Optional) Basic Auth for the dashboard
+            # Generate usersfile with: htpasswd -nbB admin 'yourpassword'
+            # - traefik.http.middlewares.traefik-basicauth.basicauth.users=admin:$$2y$$05$$...
+            # - traefik.http.routers.traefik.middlewares=traefik-basicauth

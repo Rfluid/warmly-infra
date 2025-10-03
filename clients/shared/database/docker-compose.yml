@@ -1,0 +1,19 @@
+services:
+    database:
+        image: postgres:16
+        restart: always
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
+        volumes:
+            - prisma_database:/var/lib/postgresql/data
+        networks:
+            - shared
+
+networks:
+    shared:
+        external: true
+
+volumes:
+    prisma_database:

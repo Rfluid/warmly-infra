@@ -1,0 +1,23 @@
+version: "3.9"
+
+networks:
+    edge:
+        external: true
+
+services:
+    dashy:
+        image: lissy93/dashy:latest
+        container_name: dashy
+        restart: unless-stopped
+        networks: [edge]
+        volumes:
+            - ./dashy.conf.yml:/app/user-data/conf.yml:ro
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=edge
+            - traefik.http.routers.dashy.rule=Host(`dashboard.lvh.me`)
+            - traefik.http.routers.dashy.entrypoints=web
+            - traefik.http.services.dashy.loadbalancer.server.port=8080
+        # (optional) make the port explicit for clarity
+        environment:
+            - PORT=8080

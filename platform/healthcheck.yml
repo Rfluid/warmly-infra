@@ -1,0 +1,47 @@
+networks:
+    edge:
+        external: true
+
+volumes:
+    gatus_data: {}
+
+services:
+    gatus:
+        image: ghcr.io/twin/gatus:latest
+        container_name: gatus
+        restart: unless-stopped
+        networks: [edge]
+        environment:
+            # Diretório com múltiplos YAMLs de configuração
+            GATUS_CONFIG_PATH: /config.d
+            # (Opcional) Arquivo único adicional. Se não usar, ignore.
+            # GATUS_CONFIG_FILE: /config/config.yaml
+        volumes:
+            - gatus_data:/data
+            - ./monitors:/config.d:ro # todos os *.yaml aqui viram endpoints
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=edge
+            - traefik.http.routers.status.rule=Host(`status.lvh.me`)
+            - traefik.http.routers.status.entrypoints=web
+            - traefik.http.services.status.loadbalancer.server.port=8080
+
+    # Observa alterações em platform/monitors/*.yaml e envia SIGHUP ao Gatus
+    gatus-reloader:
+        image: alpine:3.20
+        container_name: gatus-reloader
+        restart: unless-stopped
+        depends_on:
+            - gatus
+        volumes:
+            - ./monitors:/monitors:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        entrypoint: >
+            sh -c "
+            apk add --no-cache inotify-tools >/dev/null &&
+            echo '[reloader] watching /monitors for changes...' &&
+            while inotifywait -e close_write,create,delete,move /monitors; do
+              echo '[reloader] change detected, sending HUP to gatus';
+              docker kill -s HUP gatus || true;
+            done
+            "
