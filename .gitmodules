@@ -6,3 +6,6 @@
 	path = warmly-ai
 	url = git@github.com:Rfluid/warmly-ai.git
 	branch = main
+[submodule "warmly-ui"]
+	path = warmly-ui
+	url = git@github.com:pehqge/warmly-ui.git
