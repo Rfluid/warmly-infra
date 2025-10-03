@@ -2,3 +2,7 @@
 	path = stack-manager
 	url = git@github.com:Rfluid/stack-manager.git
 	branch = main
+[submodule "warmly-ai"]
+	path = warmly-ai
+	url = git@github.com:Rfluid/warmly-ai.git
+	branch = main
